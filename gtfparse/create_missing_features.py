@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function, division, absolute_import
 import logging
 from collections import OrderedDict
+from typing import Optional, Dict, Any
 
 import pandas as pd
 
@@ -23,10 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 def create_missing_features(
-        dataframe,
-        unique_keys={},
-        extra_columns={},
-        missing_value=None):
+    dataframe: pd.DataFrame,
+    unique_keys: Optional[Dict[str, str]] = None,
+    extra_columns: Optional[Dict[str, str]] = None,
+    missing_value: Optional[Any] = None,
+):
     """
     Helper function used to construct a missing feature such as 'transcript'
     or 'gene'. Some GTF files only have 'exon' and 'CDS' entries, but have
@@ -62,24 +63,24 @@ def create_missing_features(
 
     for (feature_name, groupby_key) in unique_keys.items():
         if feature_name in existing_features:
-            logging.info(
-                "Feature '%s' already exists in GTF data" % feature_name)
+            logging.info("Feature '%s' already exists in GTF data", feature_name)
             continue
-        logging.info("Creating rows for missing feature '%s'" % feature_name)
+        logging.info("Creating rows for missing feature '%s'", feature_name)
 
         # don't include rows where the groupby key was missing
-        empty_key_values = dataframe[groupby_key].map(
-            lambda x: x == "" or x is None)
+        empty_key_values = dataframe[groupby_key].map(lambda x: x == "" or x is None)
         row_groups = dataframe[~empty_key_values].groupby(groupby_key)
 
         # Each group corresponds to a unique feature entry for which the
         # other columns may or may not be uniquely defined. Start off by
         # assuming the values for every column are missing and fill them in
         # where possible.
-        feature_values = OrderedDict([
-            (column_name, [missing_value] * row_groups.ngroups)
-            for column_name in dataframe.keys()
-        ])
+        feature_values = OrderedDict(
+            [
+                (column_name, [missing_value] * row_groups.ngroups)
+                for column_name in dataframe.keys()
+            ]
+        )
 
         # User specifies which non-required columns should we try to infer
         # values for
@@ -108,8 +109,9 @@ def create_missing_features(
             for column_name in feature_columns:
                 if column_name not in existing_columns:
                     raise ValueError(
-                        "Column '%s' does not exist in GTF, columns = %s" % (
-                            column_name, existing_columns))
+                        "Column '%s' does not exist in GTF, columns = %s"
+                        % (column_name, existing_columns)
+                    )
 
                 # expect that all entries related to a reconstructed feature
                 # are related and are thus within the same interval of

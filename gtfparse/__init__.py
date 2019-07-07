@@ -14,11 +14,11 @@
 
 from .attribute_parsing import expand_attribute_strings
 from .create_missing_features import create_missing_features
-from .required_columns import REQUIRED_COLUMNS
 from .parsing_error import ParsingError
 from .read_gtf import read_gtf, parse_gtf, parse_gtf_and_expand_attributes
+from .required_columns import REQUIRED_COLUMNS
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 __all__ = [
     "expand_attribute_strings",

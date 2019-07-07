@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
 import os
 import re
 
@@ -24,47 +23,50 @@ readme_path = os.path.join(current_directory, readme_filename)
 
 readme_markdown = ""
 try:
-    with open(readme_path, 'r') as f:
+    with open(readme_path, "r") as f:
         readme_markdown = f.read()
 except Exception as e:
     print(e)
-    print("Failed to open %s" % readme_path)
+    print(f"Failed to open {readme_path}")
 
 try:
     import pypandoc
-    readme_restructured = pypandoc.convert(readme_markdown, to='rst', format='md')
+
+    readme_restructured = pypandoc.convert(readme_markdown, to="rst", format="md")
 except Exception as e:
     readme_restructured = readme_markdown
     print(e)
-    print("Failed to convert %s from Markdown to reStructuredText" % readme_filename)
+    print(f"Failed to convert {readme_filename} from Markdown to reStructuredText")
 
-with open('gtfparse/__init__.py', 'r') as f:
+with open("gtfparse/__init__.py", "r") as f:
     version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-        f.read(),
-        re.MULTILINE).group(1)
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
+    ).group(1)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup(
-        name='gtfparse',
+        name="gtfparse",
         packages=find_packages(),
         version=version,
         description="GTF Parsing",
         long_description=readme_restructured,
+        python_requires=">=3.6",
         url="https://github.com/openvax/gtfparse",
-        author="Alex Rubinsteyn",
+        author=["Alex Rubinsteyn", "Miles Smith"],
         license="http://www.apache.org/licenses/LICENSE-2.0.html",
         classifiers=[
-            'Development Status :: 4 - Beta',
-            'Environment :: Console',
-            'Operating System :: OS Independent',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python',
-            'Topic :: Scientific/Engineering :: Bio-Informatics',
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Operating System :: OS Independent",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Topic :: Scientific/Engineering :: Bio-Informatics",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Operating System :: MacOS :: MacOS X",
+            "Operating System :: POSIX :: Linux",
         ],
-        install_requires=[
-            'numpy>=1.7, <2.0',
-            'pandas>=0.15',
-        ],
+        install_requires=["numpy>=1.15", "pandas>=0.24", "tqdm>=4.31"],
     )

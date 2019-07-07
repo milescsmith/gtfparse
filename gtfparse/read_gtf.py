@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function, division, absolute_import
 import logging
+from math import ceil
+from os import stat
 from os.path import exists
+from sys import intern
+from typing import Optional, List, Callable, Set, Dict, Union
 
-from six import string_types
-from six.moves import intern
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from .attribute_parsing import expand_attribute_strings
 from .parsing_error import ParsingError
@@ -30,11 +32,12 @@ logger = logging.getLogger(__name__)
 
 
 def parse_gtf(
-        filepath_or_buffer,
-        chunksize=1024 * 1024,
-        features=None,
-        intern_columns=["seqname", "source", "strand", "frame"],
-        fix_quotes_columns=["attribute"]):
+    filepath_or_buffer: str,
+    chunksize: int = 1024 * 1024,
+    features: Optional[str] = None,
+    intern_columns: List[str] = ["seqname", "source", "strand", "frame"],
+    fix_quotes_columns: List[str] = ["attribute"],
+):
     """
     Parameters
     ----------
@@ -81,6 +84,7 @@ def parse_gtf(
     # 9) attribute : key-value pairs separated by semicolons
     # (see more complete description in docstring at top of file)
 
+    # tqdm.pandas(tqdm, leave=True)
     chunk_iterator = pd.read_csv(
         filepath_or_buffer,
         sep="\t",
@@ -92,17 +96,20 @@ def parse_gtf(
         warn_bad_lines=True,
         chunksize=chunksize,
         engine="c",
-        dtype={
-            "start": np.int64,
-            "end": np.int64,
-            "score": np.float32,
-            "seqname": str,
-        },
+        dtype={"start": np.int64, "end": np.int64, "score": np.float32, "seqname": str},
         na_values=".",
-        converters={"frame": parse_frame})
-    dataframes = []
+        converters={"frame": parse_frame},
+        memory_map=True,
+    )
+    file_size = stat(filepath_or_buffer).st_size
     try:
-        for df in chunk_iterator:
+        for df in tqdm(
+            chunk_iterator,
+            desc="loading file",
+            total=ceil(file_size / (chunksize * 425)),
+            unit="chunks",
+            leave=True,
+        ):
             for intern_column in intern_columns:
                 df[intern_column] = [intern(str(s)) for s in df[intern_column]]
 
@@ -116,7 +123,7 @@ def parse_gtf(
                 # release 78 has mistakes such as:
                 #   gene_name = "PRAMEF6;" transcript_name = "PRAMEF6;-201"
                 df[fix_quotes_column] = [
-                    s.replace(';\"', '\"').replace(";-", "-")
+                    s.replace(';"', '"').replace(";-", "-")
                     for s in df[fix_quotes_column]
                 ]
             dataframes.append(df)
@@ -127,10 +134,11 @@ def parse_gtf(
 
 
 def parse_gtf_and_expand_attributes(
-        filepath_or_buffer,
-        chunksize=1024 * 1024,
-        restrict_attribute_columns=None,
-        features=None):
+    filepath_or_buffer: str,
+    chunksize: int = 1024 * 1024,
+    restrict_attribute_columns: Union[List[str], Set[str]] = None,
+    features: Set[str] = None,
+):
     """
     Parse lines into column->values dictionary and then expand
     the 'attribute' column into multiple columns. This expansion happens
@@ -150,26 +158,25 @@ def parse_gtf_and_expand_attributes(
     features : set or None
         Ignore entries which don't correspond to one of the supplied features
     """
-    result = parse_gtf(
-        filepath_or_buffer,
-        chunksize=chunksize,
-        features=features)
+    result = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
     attribute_values = result["attribute"]
     del result["attribute"]
     for column_name, values in expand_attribute_strings(
-            attribute_values, usecols=restrict_attribute_columns).items():
+        attribute_values, usecols=restrict_attribute_columns
+    ).items():
         result[column_name] = values
     return result
 
 
 def read_gtf(
-        filepath_or_buffer,
-        expand_attribute_column=True,
-        infer_biotype_column=False,
-        column_converters={},
-        usecols=None,
-        features=None,
-        chunksize=1024 * 1024):
+    filepath_or_buffer: str,
+    expand_attribute_column: bool = True,
+    infer_biotype_column: bool = False,
+    column_converters: Optional[Dict[str, Callable[..., str]]] = None,
+    usecols: Optional[List[str]] = None,
+    features: Set[str] = None,
+    chunksize: int = 1024 * 1024,
+):
     """
     Parse a GTF into a dictionary mapping column names to sequences of values.
 
@@ -203,22 +210,20 @@ def read_gtf(
 
     chunksize : int
     """
-    if isinstance(filepath_or_buffer, string_types) and not exists(filepath_or_buffer):
-        raise ValueError("GTF file does not exist: %s" % filepath_or_buffer)
+    if isinstance(filepath_or_buffer, str) and not exists(filepath_or_buffer):
+        raise ValueError(f"GTF file does not exist: {filepath_or_buffer}")
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
-            filepath_or_buffer,
-            chunksize=chunksize,
-            restrict_attribute_columns=usecols)
+            filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols
+        )
     else:
         result_df = parse_gtf(result_df, features=features)
 
     for column_name, column_type in list(column_converters.items()):
         result_df[column_name] = [
-            column_type(string_value) if len(string_value) > 0 else None
-            for string_value
-            in result_df[column_name]
+            column_type(string_value) if string_value else None
+            for string_value in result_df[column_name]
         ]
 
     # Hackishly infer whether the values in the 'source' column of this GTF
@@ -236,7 +241,9 @@ def read_gtf(
                 logging.info("Using column 'source' to replace missing 'gene_biotype'")
                 result_df["gene_biotype"] = result_df["source"]
             if "transcript_biotype" not in column_names:
-                logging.info("Using column 'source' to replace missing 'transcript_biotype'")
+                logging.info(
+                    "Using column 'source' to replace missing 'transcript_biotype'"
+                )
                 result_df["transcript_biotype"] = result_df["source"]
 
     if usecols is not None:

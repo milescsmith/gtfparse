@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function, division, absolute_import
 import logging
 from collections import OrderedDict
 
-from six.moves import intern
+from sys import intern
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def expand_attribute_strings(
-        attribute_strings,
-        quote_char='\"',
-        missing_value="",
-        usecols=None):
+    attribute_strings, quote_char='"', missing_value="", usecols=None
+):
     """
     The last column of GTF has a variable number of key value pairs
     of the format: "key1 value1; key2 value2;"
@@ -99,7 +96,9 @@ def expand_attribute_strings(
                 extra_columns[column_name] = column
                 column_order.append(column_name)
 
-            value = value.replace(quote_char, "") if value.startswith(quote_char) else value
+            value = (
+                value.replace(quote_char, "") if value.startswith(quote_char) else value
+            )
 
             try:
                 value = value_interned_strings[value]
@@ -115,7 +114,7 @@ def expand_attribute_strings(
             else:
                 column[i] = "%s,%s" % (old_value, value)
 
-    logging.info("Extracted GTF attributes: %s" % column_order)
+    logging.info("Extracted GTF attributes: %s", column_order)
     return OrderedDict(
-        (column_name, extra_columns[column_name])
-        for column_name in column_order)
+        (column_name, extra_columns[column_name]) for column_name in column_order
+    )

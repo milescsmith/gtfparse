@@ -1,10 +1,12 @@
-from gtfparse import expand_attribute_strings
 from nose.tools import eq_
+
+from gtfparse import expand_attribute_strings
+
 
 def test_attributes_in_quotes():
     attributes = [
-        "gene_id \"ENSG001\"; tag \"bogotron\"; version \"1\";",
-        "gene_id \"ENSG002\"; tag \"wolfpuppy\"; version \"2\";"
+        'gene_id "ENSG001"; tag "bogotron"; version "1";',
+        'gene_id "ENSG002"; tag "wolfpuppy"; version "2";',
     ]
     parsed_dict = expand_attribute_strings(attributes)
     eq_(list(sorted(parsed_dict.keys())), ["gene_id", "tag", "version"])
@@ -16,7 +18,7 @@ def test_attributes_in_quotes():
 def test_attributes_without_quotes():
     attributes = [
         "gene_id ENSG001; tag bogotron; version 1;",
-        "gene_id ENSG002; tag wolfpuppy; version 2"
+        "gene_id ENSG002; tag wolfpuppy; version 2",
     ]
     parsed_dict = expand_attribute_strings(attributes)
     eq_(list(sorted(parsed_dict.keys())), ["gene_id", "tag", "version"])
