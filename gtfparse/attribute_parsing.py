@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def expand_attribute_strings(
-    attribute_strings, quote_char='"', missing_value="", usecols=None
+    attribute_strings, quote_char='"', kv_split = " ", missing_value="", usecols=None
 ):
     """
     The last column of GTF has a variable number of key value pairs
@@ -36,6 +36,9 @@ def expand_attribute_strings(
 
     quote_char : str
         Quote character to remove from values
+    
+    kv_split : str (default " ")
+        Delimiter to use when splitting individual attribute key:value pairs
 
     missing_value : any
         If an attribute is missing from a row, give it this value.
@@ -73,7 +76,7 @@ def expand_attribute_strings(
             # Ensembl release 79 added values like:
             #   transcript_support_level "1 (assigned to previous version 5)";
             # ...which gets mangled by splitting on spaces.
-            parts = kv.strip().split(" ", 2)[:2]
+            parts = kv.strip().split(kv_split, 2)[:2]
 
             if len(parts) != 2:
                 continue

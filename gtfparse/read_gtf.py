@@ -137,6 +137,7 @@ def parse_gtf_and_expand_attributes(
     filepath_or_buffer: str,
     chunksize: int = 1024 * 1024,
     restrict_attribute_columns: Union[List[str], Set[str]] = None,
+    kv_split: str = " ",
     features: Set[str] = None,
 ):
     """
@@ -155,6 +156,9 @@ def parse_gtf_and_expand_attributes(
     restrict_attribute_columns : list/set of str or None
         If given, then only usese attribute columns.
 
+    kv_split : str (default " ")
+        Delimiter to use when splitting individual attribute key:value pairs
+
     features : set or None
         Ignore entries which don't correspond to one of the supplied features
     """
@@ -162,7 +166,7 @@ def parse_gtf_and_expand_attributes(
     attribute_values = result["attribute"]
     del result["attribute"]
     for column_name, values in expand_attribute_strings(
-        attribute_values, usecols=restrict_attribute_columns
+        attribute_values, usecols=restrict_attribute_columns, kv_split = kv_split,
     ).items():
         result[column_name] = values
     return result
@@ -175,6 +179,7 @@ def read_gtf(
     column_converters: Optional[Dict[str, Callable[..., str]]] = None,
     usecols: Optional[List[str]] = None,
     features: Set[str] = None,
+    kv_split: str = " ",
     chunksize: int = 1024 * 1024,
 ):
     """
@@ -207,6 +212,9 @@ def read_gtf(
 
     features : set of str or None
         Drop rows which aren't one of the features in the supplied set
+    
+    kv_split : str (default " ")
+        Delimiter to use when splitting individual attribute key:value pairs
 
     chunksize : int
     """
@@ -215,16 +223,17 @@ def read_gtf(
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
-            filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols
+            filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols, kv_split= kv_split,
         )
     else:
-        result_df = parse_gtf(result_df, features=features)
+        result_df = parse_gtf(filepath_or_buffer, features=features)
 
-    for column_name, column_type in list(column_converters.items()):
-        result_df[column_name] = [
-            column_type(string_value) if string_value else None
-            for string_value in result_df[column_name]
-        ]
+    if column_converters:
+        for column_name, column_type in list(column_converters.items()):
+            result_df[column_name] = [
+                column_type(string_value) if string_value else None
+                for string_value in result_df[column_name]
+            ]
 
     # Hackishly infer whether the values in the 'source' column of this GTF
     # are actually representing a biotype by checking for the most common
