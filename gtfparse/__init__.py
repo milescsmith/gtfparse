@@ -19,7 +19,7 @@ from .read_gtf import read_gtf, parse_gtf, parse_gtf_and_expand_attributes
 from .required_columns import REQUIRED_COLUMNS
 from .write_gtf import df_to_gtf, extract_seq_info
 
-__version__ = "1.3.0"
+__version__ = "1.3.5"
 
 __all__ = [
     "expand_attribute_strings",
