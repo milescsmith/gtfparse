@@ -1,5 +1,6 @@
-
 import pandas as pd
+from .required_columns import REQUIRED_COLUMNS
+
 
 def extract_seq_info(gtf_row: pd.Series):
     """ Convert the data in the rows from a GTF/GFF3-formatted DataFrame
@@ -11,24 +12,14 @@ def extract_seq_info(gtf_row: pd.Series):
     gtf_row : :class:`pd.Series`
         Row of a GTF-formatted Pandas DataFrame
     """
-    required_columns = [
-        "seqname",
-        "source",
-        "feature",
-        "start",
-        "end",
-        "score",
-        "strand",
-        "frame",
-    ]
     try:
-        required = "\t".join(list(gtf_row[required_columns].astype("str").values))
+        required = "\t".join(list(gtf_row[REQUIRED_COLUMNS[:-1]].astype("str").values))
         attributes = ";".join(
             [
                 "=".join(_)
                 for _ in zip(
-                    gtf_row.drop(required_columns).keys().values,
-                    list(gtf_row.drop(required_columns).astype("str")),
+                    gtf_row.drop(REQUIRED_COLUMNS[:-1]).keys().values,
+                    list(gtf_row.drop(REQUIRED_COLUMNS[:-1]).astype("str")),
                 )
             ]
         )
@@ -36,6 +27,7 @@ def extract_seq_info(gtf_row: pd.Series):
     except Exception:
         raise ValueError(gtf_row)
     return line_to_strings
+
 
 def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
     """ Write a GTF/GFF3-formatted DataFrame out as a GTF
