@@ -37,7 +37,7 @@ def parse_gtf(
     features: Optional[str] = None,
     intern_columns: List[str] = ["seqname", "source", "strand", "frame"],
     fix_quotes_columns: List[str] = ["attribute"],
-):
+) -> pd.DataFrame:
     """
     Parameters
     ----------
@@ -166,7 +166,7 @@ def parse_gtf_and_expand_attributes(
     attribute_values = result["attribute"]
     del result["attribute"]
     for column_name, values in expand_attribute_strings(
-        attribute_values, usecols=restrict_attribute_columns, kv_split = kv_split,
+        attribute_values, usecols=restrict_attribute_columns, kv_split=kv_split
     ).items():
         result[column_name] = values
     return result
@@ -181,7 +181,7 @@ def read_gtf(
     features: Set[str] = None,
     kv_split: str = " ",
     chunksize: int = 1024 * 1024,
-):
+) -> pd.DataFrame:
     """
     Parse a GTF into a dictionary mapping column names to sequences of values.
 
@@ -223,12 +223,15 @@ def read_gtf(
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
-            filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols, kv_split= kv_split,
+            filepath_or_buffer,
+            chunksize=chunksize,
+            restrict_attribute_columns=usecols,
+            kv_split=kv_split,
         )
     else:
         result_df = parse_gtf(filepath_or_buffer, features=features)
 
-    if column_converters:
+    if column_converters is not None:
         for column_name, column_type in list(column_converters.items()):
             result_df[column_name] = [
                 column_type(string_value) if string_value else None

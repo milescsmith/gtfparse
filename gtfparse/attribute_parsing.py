@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def expand_attribute_strings(
-    attribute_strings, quote_char='"', kv_split = " ", missing_value="", usecols=None
+    attribute_strings, quote_char='"', kv_split=" ", missing_value="", usecols=None
 ):
     """
     The last column of GTF has a variable number of key value pairs
