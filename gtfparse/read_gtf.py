@@ -96,8 +96,8 @@ def parse_gtf(
         warn_bad_lines=True,
         chunksize=chunksize,
         engine="c",
-        dtype={"start": np.int64, "end": np.int64, "score": np.float32, "seqname": str},
-        na_values=".",
+        dtype={"start": str, "end": str, "score": str, "seqname": str},
+        #na_values=".",
         converters={"frame": parse_frame},
         memory_map=True,
     )
@@ -250,10 +250,10 @@ def read_gtf(
             # the 2nd column is the transcript_biotype (otherwise, it's the
             # gene_biotype)
             if "gene_biotype" not in column_names:
-                logging.info("Using column 'source' to replace missing 'gene_biotype'")
+                logger.info("Using column 'source' to replace missing 'gene_biotype'")
                 result_df["gene_biotype"] = result_df["source"]
             if "transcript_biotype" not in column_names:
-                logging.info(
+                logger.info(
                     "Using column 'source' to replace missing 'transcript_biotype'"
                 )
                 result_df["transcript_biotype"] = result_df["source"]
