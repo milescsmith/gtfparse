@@ -1,4 +1,4 @@
-from six import StringIO
+from io import StringIO
 
 from gtfparse import create_missing_features, parse_gtf_and_expand_attributes
 

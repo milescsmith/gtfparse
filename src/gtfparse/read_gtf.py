@@ -25,7 +25,6 @@ from tqdm import tqdm
 
 from .attribute_parsing import expand_attribute_strings
 from .parsing_error import ParsingError
-from .required_columns import REQUIRED_COLUMNS
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,7 +33,7 @@ logger = logging.getLogger(__name__)
 def parse_gtf(
     filepath_or_buffer: str,
     chunksize: int = 1024 * 1024,
-    features: Optional[str] = None,
+    features: Optional[List[str]] = None,
     intern_columns: List[str] = ["seqname", "source", "strand", "frame"],
     fix_quotes_columns: List[str] = ["attribute"],
 ):
@@ -56,16 +55,10 @@ def parse_gtf(
         Most commonly the 'attribute' column which had broken quotes on
         some Ensembl release GTF files.
     """
-    if features is not None:
+    if features:
         features = set(features)
 
     dataframes = []
-
-    def parse_frame(s):
-        if s == ".":
-            return 0
-        else:
-            return int(s)
 
     # GTF columns:
     # 1) seqname: str ("1", "X", "chrX", etc...)
@@ -84,24 +77,61 @@ def parse_gtf(
     # 9) attribute : key-value pairs separated by semicolons
     # (see more complete description in docstring at top of file)
 
+    def parse_frame(s: str) -> int:
+        if s == ".":
+            return 0
+        else:
+            return int(s)
+
+    def na_to_zero(x: str) -> Union[int, str]:
+        if pd.isna(x):
+            return 0
+        else:
+            return x
+
+    def fix_attribute_column(x: str) -> str:
+        return x.replace(';"', '"').replace(";-", "-").replace("; ", ";")
+
     # tqdm.pandas(tqdm, leave=True)
     chunk_iterator = pd.read_csv(
         filepath_or_buffer,
         sep="\t",
         comment="#",
-        names=REQUIRED_COLUMNS,
+        names=[
+            "seqname",
+            "source",
+            "feature",
+            "start",
+            "end",
+            "score",
+            "strand",
+            "frame",
+            "attribute",
+        ],
+        dtype={"score": np.float32, "strand": str,},
         skipinitialspace=True,
         skip_blank_lines=True,
         error_bad_lines=True,
         warn_bad_lines=True,
         chunksize=chunksize,
         engine="c",
-        dtype={"start": np.int64, "end": np.int64, "score": np.float32, "seqname": str},
         na_values=".",
-        converters={"frame": parse_frame},
-        memory_map=True,
+        converters={
+            "start": na_to_zero,
+            "end": na_to_zero,
+            "attribue": fix_attribute_column,
+            "frame": parse_frame,
+            "seqname": intern,
+            "source": intern,
+            "feature": intern,
+            "strand": intern,
+        },
+        memory_map=False,
+        low_memory=True,
     )
+
     file_size = stat(filepath_or_buffer).st_size
+
     try:
         for df in tqdm(
             chunk_iterator,
@@ -110,22 +140,6 @@ def parse_gtf(
             unit="chunks",
             leave=True,
         ):
-            for intern_column in intern_columns:
-                df[intern_column] = [intern(str(s)) for s in df[intern_column]]
-
-            # compare feature strings after interning
-            if features is not None:
-                df = df[df["feature"].isin(features)]
-
-            for fix_quotes_column in fix_quotes_columns:
-                # Catch mistaken semicolons by replacing "xyz;" with "xyz"
-                # Required to do this since the Ensembl GTF for Ensembl
-                # release 78 has mistakes such as:
-                #   gene_name = "PRAMEF6;" transcript_name = "PRAMEF6;-201"
-                df[fix_quotes_column] = [
-                    s.replace(';"', '"').replace(";-", "-")
-                    for s in df[fix_quotes_column]
-                ]
             dataframes.append(df)
     except Exception as e:
         raise ParsingError(str(e))
@@ -220,11 +234,12 @@ def read_gtf(
     else:
         result_df = parse_gtf(result_df, features=features)
 
-    for column_name, column_type in list(column_converters.items()):
-        result_df[column_name] = [
-            column_type(string_value) if string_value else None
-            for string_value in result_df[column_name]
-        ]
+    if column_converters:
+        for column_name, column_type in list(column_converters.items()):
+            result_df[column_name] = [
+                column_type(string_value) if string_value else None
+                for string_value in result_df[column_name]
+            ]
 
     # Hackishly infer whether the values in the 'source' column of this GTF
     # are actually representing a biotype by checking for the most common

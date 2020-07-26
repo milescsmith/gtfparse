@@ -1,5 +1,5 @@
 from nose.tools import eq_
-from six import StringIO
+from io import StringIO
 
 from gtfparse import parse_gtf_and_expand_attributes
 

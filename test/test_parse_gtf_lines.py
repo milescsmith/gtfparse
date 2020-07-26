@@ -1,6 +1,6 @@
 import numpy as np
 from nose.tools import eq_, assert_raises
-from six import StringIO
+from io import StringIO
 
 from gtfparse import (
     parse_gtf,

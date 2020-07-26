@@ -38,7 +38,7 @@ except Exception as e:
     print(e)
     print(f"Failed to convert {readme_filename} from Markdown to reStructuredText")
 
-with open("gtfparse/__init__.py", "r") as f:
+with open("src/gtfparse/__init__.py", "r") as f:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
     ).group(1)
@@ -68,5 +68,5 @@ if __name__ == "__main__":
             "Operating System :: MacOS :: MacOS X",
             "Operating System :: POSIX :: Linux",
         ],
-        install_requires=["numpy>=1.15", "pandas>=0.24", "tqdm>=4.31"],
+        install_requires=["numpy>=1.15", "pandas>=1.0.5", "tqdm>=4.31"],
     )
