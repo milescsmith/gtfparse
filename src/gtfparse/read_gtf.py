@@ -22,6 +22,7 @@ from typing import Optional, List, Callable, Dict, Union
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from io import StringIO
 
 from .attribute_parsing import expand_attribute_strings
 from .parsing_error import ParsingError
@@ -32,12 +33,12 @@ logger = logging.getLogger(__name__)
 
 
 def parse_gtf(
-    filepath_or_buffer: str,
+    filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
     features: Optional[List[str]] = None,
     intern_columns: List[str] = ["seqname", "source", "strand", "frame"],
     fix_quotes_columns: List[str] = ["attribute"],
-):
+) -> pd.DataFrame:
     """
     Parameters
     ----------
@@ -90,7 +91,7 @@ def parse_gtf(
         return x.replace(';"', '"').replace(";-", "-").replace("; ", ";")
 
     # tqdm.pandas(tqdm, leave=True)
-    logger.info(f"Reading in {basename(filepath_or_buffer)} chunks")
+    logger.info(f"Reading in data in chunks")
 
     chunk_iterator = pd.read_csv(
         filepath_or_buffer,
@@ -125,7 +126,10 @@ def parse_gtf(
         low_memory=False,
     )
 
-    file_size = stat(filepath_or_buffer).st_size
+    if isinstance(filepath_or_buffer, str):
+        file_size = stat(filepath_or_buffer).st_size
+    elif isinstance(filepath_or_buffer, StringIO):
+        file_size = len(filepath_or_buffer.getvalue())
 
     try:
         for df in tqdm(
@@ -225,13 +229,15 @@ def expand_attributes(
 
     logger = logging.getLogger("gtfparse")
 
-    def attribute_to_dict(
-        x: str, delim1: str = ";", delim2: str = "="
-    ) -> Dict[str, str]:
+    def attribute_to_dict(x: str,) -> Dict[str, str]:
+        import re
+
+        x = x.rstrip(";")
+
         return dict(
-            _.split(delim2, maxsplit=1)
-            for _ in x.split(delim1)
-            if len(_.split(delim2, maxsplit=1)) == 2
+            re.split("\s+|=+|,+", _)
+            for _ in re.split(";\s*", x)
+            if len(re.split("\s|=", _)) == 2
         )
 
     try:
@@ -243,12 +249,12 @@ def expand_attributes(
             .swifter.progress_bar(True)
             .apply(attribute_to_dict)
             .to_json(orient="records")
-        )
+        ).replace(to_replace=np.nan, value="")
     except ImportError:
         logger.info("Converting 'attribute' column to dictionaries, then to json")
         attribute_values = pd.read_json(
             df["attribute"].apply(attribute_to_dict).to_json(orient="records")
-        )
+        ).replace(to_replace=np.nan, value="")
 
     if restrict_attribute_columns:
         logger.info("Combining 'attribute' values not selected for expansion")
@@ -320,7 +326,7 @@ def read_gtf(
     chunksize : int
     """
     setup_logging(name="gtfparse")
-    
+
     logger = logging.getLogger("gtfparse")
 
     if isinstance(filepath_or_buffer, str) and not exists(filepath_or_buffer):

@@ -29,5 +29,5 @@ __all__ = [
     "REQUIRED_COLUMNS",
     "ParsingError",
     "read_gtf",
-    "logging"
+    "logging",
 ]
