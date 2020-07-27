@@ -1,21 +1,24 @@
-from data import data_path
+import unittest
+from os.path import exists
+from pkg_resources import resource_filename
 
 from gtfparse import read_gtf
 
 REFSEQ_GTF_PATH = data_path("refseq.ucsc.small.gtf")
 
 
-def _check_required_columns(gtf_dict):
-    assert "feature" in gtf_dict, "Expected column named 'feature' in RefSeq GTF"
-    assert "gene_id" in gtf_dict, "Expected column named 'gene_id' in RefSeq GTF"
-    assert (
-        "transcript_id" in gtf_dict
-    ), "Expected column named 'transcript_id' in RefSeq GTF"
-    features = set(gtf_dict["feature"])
-    assert "exon" in features, "No exon features in GTF (available: %s)" % features
-    assert "CDS" in features, "No CDS features in GTF (available: %s)" % features
+class TestRefseGTF(unittest.TestCase):
+    def setUp(self):
+        self.refseq = resource_filename("data", "refseq.ucsc.small.gtf")
 
+        self.assertTrue(exists(self.refseq), msg="Cannot find 'refseq.ucsc.small.gtf'")
 
-def test_read_refseq_gtf_as_dataframe():
-    gtf_df = read_gtf(REFSEQ_GTF_PATH)
-    _check_required_columns(gtf_df)
+    def _check_required_columns(self):
+        refseq = read_gtf(self.refseq)
+
+        self.assertIn("feature", refseq.columns, msg="Expected column named 'feature' not found in RefSeq GTF")
+        self.assertIn("gene_id", refseq.columns, msg="Expected column named 'gene_id' not found in RefSeq GTF")
+        self.assertIn("transcript_id", refseq.columns, msg="Expected column named 'transcript_id' not found in RefSeq GTF")
+        
+        self.assertIn("exon", refseq['feature'].unique(), msg=f"No exon features in GTF (available: {refseq['feature'].unique()})")
+        self.assertIn("CDS", refseq['feature'].unique(), msg=f"No CDS features in GTF (available: {refseq['feature'].unique()})")
