@@ -58,8 +58,8 @@ def create_missing_features(
     """
     extra_dataframes = []
 
-    existing_features = set(dataframe["feature"])
-    existing_columns = set(dataframe.keys())
+    existing_features = dataframe["feature"].unique()
+    existing_columns = dataframe.columns.unique()
 
     for (feature_name, groupby_key) in unique_keys.items():
         if feature_name in existing_features:
