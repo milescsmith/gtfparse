@@ -213,32 +213,37 @@ def parse_gtf_and_expand_attributes(
     """
     logger = logging.getLogger("gtfparse")
 
-    result = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
+    df = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
 
     logger.info("Expanding attributes")
-    expanded_result = expand_attributes(
-        df=result, restrict_attribute_columns=restrict_attribute_columns
-    )
-
-    return expanded_result
-
-
-def expand_attributes(
-    df: pd.DataFrame, restrict_attribute_columns: Optional[List[str]] = None
-) -> pd.DataFrame:
-
-    logger = logging.getLogger("gtfparse")
-
-    def attribute_to_dict(x: str,) -> Dict[str, str]:
+    
+    def attribute_to_dict(attributes: str) -> Dict[str, str]:
         import re
 
-        x = x.rstrip(";")
+        attributes = attributes.rstrip(";")
+        
+        # this would be simple if attribute keys weren't ever duplicated
+        # but the GTF/GFF3 specs don't forbid it so...
+        # return dict(
+        #     re.split("\s+|=+|,+", _)
+        #     for _ in re.split(";\s*", x)
+        #     if len(re.split("\s|=", _)) == 2
+        # )
 
-        return dict(
-            re.split("\s+|=+|,+", _)
-            for _ in re.split(";\s*", x)
-            if len(re.split("\s|=", _)) == 2
-        )
+        attr_dict = {}
+        keys = [re.split("\s+|=+|,+", _)[0] for _ in re.split(";\s*", attributes) if len(re.split("\s|=", _)) == 2] 
+        values = [re.split("\s+|=+|,+", _)[1] for _ in re.split(";\s*", attributes) if len(re.split("\s|=", _)) == 2]
+        for i, j in zip(keys, values):
+            j = j.strip('"')
+            if i in attr_dict:
+                if isinstance(attr_dict[i], str):
+                    attr_dict[i] = ",".join([attr_dict[i], j])
+                else:
+                    attr_dict[i].append(j)
+            else:
+                attr_dict[i] = j
+        
+        return attr_dict
 
     try:
         import swifter
@@ -270,7 +275,7 @@ def expand_attributes(
             [
                 df.loc[:, df.columns.drop("attribute")],
                 attribute_column,
-                attribute_values,
+                attribute_values[restrict_attribute_columns],
             ],
             axis=1,
         )
@@ -281,6 +286,7 @@ def expand_attributes(
         )
 
     return expanded_df
+
 
 
 def read_gtf(
