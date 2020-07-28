@@ -81,7 +81,9 @@ class TestCreateMissingFeatures(unittest.TestCase):
             msg=f"Wrong strand for C18orf10-201: {transcript_strand}",
         )
 
-        KIAA1328_gene_mask = (df["feature"] == "gene") & (df["gene_name"] == '"KIAA1328"')
+        KIAA1328_gene_mask = (df["feature"] == "gene") & (
+            df["gene_name"] == '"KIAA1328"'
+        )
         self.assertEqual(
             len(df[KIAA1328_gene_mask]),
             1,
@@ -129,3 +131,7 @@ class TestCreateMissingFeatures(unittest.TestCase):
             },
         )
         self._check_expanded_dataframe(df_extra_features)
+
+
+if __name__ == "__main__":
+    unittest.main()
