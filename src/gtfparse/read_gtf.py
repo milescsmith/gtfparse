@@ -349,11 +349,8 @@ def read_gtf(
         )
 
     if column_converters:
-        for column_name, column_type in list(column_converters.items()):
-            result_df[column_name] = [
-                column_type(string_value) if string_value else None
-                for string_value in result_df[column_name]
-            ]
+        for column_name in column_converters:
+            result_df[column_name] = result_df[column_name].astype(column_converters[column_name], errors="ignore")
 
     # Hackishly infer whether the values in the 'source' column of this GTF
     # are actually representing a biotype by checking for the most common
