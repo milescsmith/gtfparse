@@ -14,8 +14,12 @@
 
 import os
 import re
+import sys
 
 from setuptools import setup, find_packages
+
+if sys.version_info < (3, 6):
+    sys.exit("pygmst requires Python >= 3.6")
 
 readme_filename = "README.md"
 current_directory = os.path.dirname(__file__)
@@ -38,35 +42,39 @@ except Exception as e:
     print(e)
     print(f"Failed to convert {readme_filename} from Markdown to reStructuredText")
 
-with open("gtfparse/__init__.py", "r") as f:
+with open("src/gtfparse/__init__.py", "r") as f:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
     ).group(1)
 
-if __name__ == "__main__":
-    setup(
-        name="gtfparse",
-        packages=find_packages(),
-        version=version,
-        description="GTF Parsing",
-        long_description=readme_restructured,
-        python_requires=">=3.6",
-        url="https://github.com/openvax/gtfparse",
-        author=["Alex Rubinsteyn", "Miles Smith"],
-        license="http://www.apache.org/licenses/LICENSE-2.0.html",
-        classifiers=[
-            "Development Status :: 4 - Beta",
-            "Environment :: Console",
-            "Operating System :: OS Independent",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: Apache Software License",
-            "Programming Language :: Python",
-            "Topic :: Scientific/Engineering :: Bio-Informatics",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Operating System :: MacOS :: MacOS X",
-            "Operating System :: POSIX :: Linux",
-        ],
-        install_requires=["numpy>=1.15", "pandas>=0.24", "tqdm>=4.31"],
-    )
+
+setup(
+    name="gtfparse",
+    packages=find_packages(where="src"),
+    package_dir={"gtfparse": "src/gtfparse"},
+    package_data={"": ["gtfparse/tests/data/*.*"]},
+    include_package_data=True,
+    version=version,
+    description="GTF Parsing",
+    long_description=readme_restructured,
+    python_requires=">=3.6",
+    url="https://github.com/openvax/gtfparse",
+    author=["Alex Rubinsteyn", "Miles Smith"],
+    license="http://www.apache.org/licenses/LICENSE-2.0.html",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Operating System :: OS Independent",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX :: Linux",
+    ],
+    install_requires=["numpy>=1.15", "pandas>=1.0.5", "tqdm>=4.31"],
+    extra_requires={"parallel": ["swifter~=0.3"]},
+)

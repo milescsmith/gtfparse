@@ -58,14 +58,14 @@ def create_missing_features(
     """
     extra_dataframes = []
 
-    existing_features = set(dataframe["feature"])
-    existing_columns = set(dataframe.keys())
+    existing_features = dataframe["feature"].unique()
+    existing_columns = dataframe.columns.unique()
 
     for (feature_name, groupby_key) in unique_keys.items():
         if feature_name in existing_features:
-            logging.info("Feature '%s' already exists in GTF data", feature_name)
+            logger.info(f"Feature '{feature_name}' already exists in GTF data")
             continue
-        logging.info("Creating rows for missing feature '%s'", feature_name)
+        logger.info(f"Creating rows for missing feature '{feature_name}'")
 
         # don't include rows where the groupby key was missing
         empty_key_values = dataframe[groupby_key].map(lambda x: x == "" or x is None)
