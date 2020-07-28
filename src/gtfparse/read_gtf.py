@@ -13,31 +13,28 @@
 # limitations under the License.
 
 import logging
+import re
+from io import StringIO
 from math import ceil
 from os import stat
-from os.path import exists, basename
+from os.path import basename, exists
 from sys import intern
-from typing import Optional, List, Callable, Dict, Union
+from typing import Callable, Dict, List, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from io import StringIO
 
 from .attribute_parsing import expand_attribute_strings
-from .parsing_error import ParsingError
 from .logging import setup_logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from .parsing_error import ParsingError
 
 
 def parse_gtf(
     filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
-    features: Optional[List[str]] = None,
-    intern_columns: List[str] = ["seqname", "source", "strand", "frame"],
-    fix_quotes_columns: List[str] = ["attribute"],
+    features: Optional[Tuple[str]] = None,
+    fix_quotes_columns: Tuple[str] = ("attribute"),
 ) -> pd.DataFrame:
     """
     Parameters
@@ -50,9 +47,7 @@ def parse_gtf(
     features : set or None
         Drop entries which aren't one of these features
 
-    intern_columns : list
-        These columns are short strings which should be interned
-
+    
     fix_quotes_columns : list
         Most commonly the 'attribute' column which had broken quotes on
         some Ensembl release GTF files.
@@ -87,11 +82,11 @@ def parse_gtf(
         else:
             return int(s)
 
-    def fix_attribute_column(x: str) -> str:
-        return x.replace(';"', '"').replace(";-", "-").replace("; ", ";")
+    def fix_attribute_column(attribute: str) -> str:
+        return attribute.replace(';"', '"').replace(";-", "-").replace("; ", ";")
 
     # tqdm.pandas(tqdm, leave=True)
-    logger.info(f"Reading in data in chunks")
+    logger.info("Reading in data in chunks")
 
     chunk_iterator = pd.read_csv(
         filepath_or_buffer,
@@ -156,32 +151,32 @@ def parse_gtf(
         df["attribute"] = (
             df["attribute"]
             .swifter.progress_bar(True)
-            .apply(lambda x: x.replace(';"', '"').replace(";-", "-").replace("; ", ";"))
+            .apply(fix_attribute_column)
         )
 
         logger.info("Converting non-integer 'start' values to 0")
         df["start"] = (
             df["start"]
             .swifter.progress_bar(True)
-            .apply(lambda i: np.nan_to_num(i))
+            .apply(np.nan_to_num)
             .astype(np.int32)
         )
         logger.info("Converting non-integer 'end' values to 0")
         df["end"] = (
             df["end"]
             .swifter.progress_bar(True)
-            .apply(lambda i: np.nan_to_num(i))
+            .apply(np.nan_to_num)
             .astype(np.int32)
         )
     except ImportError:
         logger.info("Repairing non-standard 'attributes'")
         df["attribute"] = df["attribute"].apply(
-            lambda x: x.replace(';"', '"').replace(";-", "-").replace("; ", ";")
+            fix_attribute_column
         )
         logger.info("Converting non-integer 'start' values to 0")
-        df["start"] = df["start"].apply(lambda i: np.nan_to_num(i)).astype(np.int32)
+        df["start"] = df["start"].apply(np.nan_to_num).astype(np.int32)
         logger.info("Converting non-integer 'end' values to 0")
-        df["end"] = df["end"].apply(lambda i: np.nan_to_num(i)).astype(np.int32)
+        df["end"] = df["end"].apply(np.nan_to_num).astype(np.int32)
 
     return df
 
@@ -218,8 +213,6 @@ def parse_gtf_and_expand_attributes(
     logger.info("Expanding attributes")
 
     def attribute_to_dict(attributes: str) -> Dict[str, str]:
-        import re
-
         attributes = attributes.rstrip(";")
 
         # this would be simple if attribute keys weren't ever duplicated
@@ -233,13 +226,13 @@ def parse_gtf_and_expand_attributes(
         attr_dict: Dict[str, str] = {}
         keys = [
             re.split("\s+|=+|,+", _)[0]
-            for _ in re.split(";\s*", attributes)
-            if len(re.split("\s|=", _)) == 2
+            for _ in re.split(r";\s*", attributes)
+            if len(re.split(r"\s|=", _)) == 2
         ]
         values = [
             re.split("\s+|=+|,+", _)[1]
-            for _ in re.split(";\s*", attributes)
-            if len(re.split("\s|=", _)) == 2
+            for _ in re.split(r";\s*", attributes)
+            if len(re.split(r"\s|=", _)) == 2
         ]
         for i, j in zip(keys, values):
             j = j.strip('"')

@@ -14,7 +14,7 @@
 
 import logging
 from collections import OrderedDict
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import pandas as pd
 

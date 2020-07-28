@@ -1,6 +1,7 @@
 import unittest
-from pkg_resources import resource_filename
+
 import pandas as pd
+from pkg_resources import resource_filename
 
 from gtfparse import read_gtf
 

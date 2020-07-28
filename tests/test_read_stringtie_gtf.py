@@ -1,5 +1,6 @@
 import unittest
 from os.path import exists
+
 from pkg_resources import resource_filename
 
 from gtfparse import read_gtf

@@ -1,7 +1,8 @@
 import unittest
-from pkg_resources import resource_filename
 from io import StringIO
 from os.path import exists
+
+from pkg_resources import resource_filename
 
 from gtfparse import create_missing_features, parse_gtf_and_expand_attributes
 

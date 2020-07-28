@@ -16,7 +16,7 @@ import os
 import re
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")

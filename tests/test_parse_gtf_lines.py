@@ -1,16 +1,13 @@
+import unittest
+from io import StringIO
+from os.path import exists
+
 import numpy as np
 import pandas as pd
-from io import StringIO
-import unittest
-from os.path import exists
 from pkg_resources import resource_filename
 
-from gtfparse import (
-    parse_gtf,
-    parse_gtf_and_expand_attributes,
-    REQUIRED_COLUMNS,
-    ParsingError,
-)
+from gtfparse import (REQUIRED_COLUMNS, ParsingError, parse_gtf,
+                      parse_gtf_and_expand_attributes)
 
 
 class TestParseGTF(unittest.TestCase):
