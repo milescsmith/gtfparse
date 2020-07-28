@@ -216,12 +216,12 @@ def parse_gtf_and_expand_attributes(
     df = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
 
     logger.info("Expanding attributes")
-    
+
     def attribute_to_dict(attributes: str) -> Dict[str, str]:
         import re
 
         attributes = attributes.rstrip(";")
-        
+
         # this would be simple if attribute keys weren't ever duplicated
         # but the GTF/GFF3 specs don't forbid it so...
         # return dict(
@@ -230,19 +230,24 @@ def parse_gtf_and_expand_attributes(
         #     if len(re.split("\s|=", _)) == 2
         # )
 
-        attr_dict = {}
-        keys = [re.split("\s+|=+|,+", _)[0] for _ in re.split(";\s*", attributes) if len(re.split("\s|=", _)) == 2] 
-        values = [re.split("\s+|=+|,+", _)[1] for _ in re.split(";\s*", attributes) if len(re.split("\s|=", _)) == 2]
+        attr_dict: Dict[str, str] = {}
+        keys = [
+            re.split("\s+|=+|,+", _)[0]
+            for _ in re.split(";\s*", attributes)
+            if len(re.split("\s|=", _)) == 2
+        ]
+        values = [
+            re.split("\s+|=+|,+", _)[1]
+            for _ in re.split(";\s*", attributes)
+            if len(re.split("\s|=", _)) == 2
+        ]
         for i, j in zip(keys, values):
             j = j.strip('"')
             if i in attr_dict:
-                if isinstance(attr_dict[i], str):
-                    attr_dict[i] = ",".join([attr_dict[i], j])
-                else:
-                    attr_dict[i].append(j)
+                attr_dict[i] = ",".join([attr_dict[i], j])
             else:
                 attr_dict[i] = j
-        
+
         return attr_dict
 
     try:
@@ -288,10 +293,9 @@ def parse_gtf_and_expand_attributes(
     return expanded_df
 
 
-
 def read_gtf(
     filepath_or_buffer: str,
-    expand_attribute_column: bool = False,
+    expand_attribute_column: bool = True,
     infer_biotype_column: bool = False,
     column_converters: Optional[Dict[str, Callable[..., str]]] = None,
     usecols: Optional[List[str]] = None,
@@ -350,7 +354,9 @@ def read_gtf(
 
     if column_converters:
         for column_name in column_converters:
-            result_df[column_name] = result_df[column_name].astype(column_converters[column_name], errors="ignore")
+            result_df[column_name] = result_df[column_name].astype(
+                column_converters[column_name], errors="ignore"
+            )
 
     # Hackishly infer whether the values in the 'source' column of this GTF
     # are actually representing a biotype by checking for the most common

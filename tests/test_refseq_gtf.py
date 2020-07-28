@@ -12,7 +12,7 @@ class TestRefseqGTF(unittest.TestCase):
         self.assertTrue(exists(self.refseq), msg="Cannot find 'refseq.ucsc.small.gtf'")
 
     def test_refseq_gtf(self):
-        refseq = read_gtf(self.refseq)
+        refseq = read_gtf(self.refseq, expand_attribute_column=True)
 
         self.assertIn(
             "feature",

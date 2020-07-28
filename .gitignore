@@ -55,5 +55,12 @@ docs/_build/
 
 # PyBuilder
 target/
-.idea/
+.idea/*
 .vscode/
+.vscode/*
+.mypy_cache/
+.mypy_cache/*
+.ipynb_checkpoints/
+.ipynb_checkpoints/*
+.pytest_cache/
+.pytest_cache/*

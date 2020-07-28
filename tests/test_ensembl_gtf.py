@@ -109,7 +109,9 @@ class TestEnsemblGTF(unittest.TestCase):
         )
 
     def test_ensembl_gtf_gene_names_with_usecols(self):
-        df = read_gtf(self.ensembl_gtf, usecols=["gene_name"], expand_attribute_column=True)
+        df = read_gtf(
+            self.ensembl_gtf, usecols=["gene_name"], expand_attribute_column=True
+        )
         gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),
@@ -133,7 +135,11 @@ class TestEnsemblGTF(unittest.TestCase):
         )
 
     def test_ensembl_gtf_gene_names_with_usecols_gzip(self):
-        df = read_gtf(self.ensembl_gtf + ".gz", usecols=["gene_name"], expand_attribute_column=True)
+        df = read_gtf(
+            self.ensembl_gtf + ".gz",
+            usecols=["gene_name"],
+            expand_attribute_column=True,
+        )
         gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),

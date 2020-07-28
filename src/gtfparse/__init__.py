@@ -19,7 +19,7 @@ from .read_gtf import read_gtf, parse_gtf, parse_gtf_and_expand_attributes
 from .required_columns import REQUIRED_COLUMNS
 from .logging import setup_logging
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 __all__ = [
     "expand_attribute_strings",

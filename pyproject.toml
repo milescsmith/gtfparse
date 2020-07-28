@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+# [build-system]
+# requires = ["poetry_core"]
+# build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38']
+skip-string-normalization = true

@@ -43,9 +43,9 @@ class TestParseGTF(unittest.TestCase):
         self.expected_start = pd.Series([11869, 11869], dtype=np.int32)
         self.expected_end = pd.Series([14409, 14409], dtype=np.int32)
         self.expected_gene_id = pd.Series(
-            ['"ENSG00000223972"', '"ENSG00000223972"'], dtype=object
+            ['ENSG00000223972', 'ENSG00000223972'], dtype=object
         )
-        self.expected_transcript_id = pd.Series(["", '"ENST00000456328"'], dtype=object)
+        self.expected_transcript_id = pd.Series(["", 'ENST00000456328'], dtype=object)
         self.expected_attribute = pd.Series(
             [
                 'gene_id "ENSG00000223972";gene_name "DDX11L1";gene_source "havana";gene_biotype "transcribed_unprocessed_pseudogene";',
@@ -59,30 +59,30 @@ class TestParseGTF(unittest.TestCase):
 
         self.assertTrue(
             parsed_df.columns.equals(self.expanded_columns),
-            msg=f"columns not equal.  Expected {self.expanded_columns} got {parsed_df.columns}",
+            msg=f"columns not equal. Expected {self.expanded_columns} got {parsed_df.columns}",
         )
         self.assertTrue(
             parsed_df["seqname"].equals(self.expected_seqname),
-            msg=f"transcript_id not equal.  Expected {self.expected_seqname} got {parsed_df['seqname']}",
+            msg=f"transcript_id not equal. Expected {self.expected_seqname} got {parsed_df['seqname']}",
         )
 
         self.assertTrue(
             parsed_df["start"].equals(self.expected_start),
-            msg=f"transcript_id not equal.  Expected {self.expected_start} got {parsed_df['start']}",
+            msg=f"transcript_id not equal. Expected {self.expected_start} got {parsed_df['start']}",
         )
         self.assertTrue(
             parsed_df["end"].equals(self.expected_end),
-            msg=f"transcript_id not equal.  Expected {self.expected_end} got {parsed_df['end']}",
+            msg=f"transcript_id not equal. Expected {self.expected_end} got {parsed_df['end']}",
         )
 
         self.assertTrue(np.isnan(parsed_df["score"]).all(), msg="Unexpected scores")
         self.assertTrue(
             parsed_df["gene_id"].equals(self.expected_gene_id),
-            msg=f"gene_id not equal.  Expected {self.expected_gene_id} got {parsed_df['gene_id']}",
+            msg=f"gene_id not equal. Expected {self.expected_gene_id} got {parsed_df['gene_id']}",
         )
         self.assertTrue(
             parsed_df["transcript_id"].equals(self.expected_transcript_id),
-            msg=f"transcript_id not equal.  Expected {self.expected_transcript_id} got {parsed_df['transcript_id']}",
+            msg=f"transcript_id not equal. Expected {self.expected_transcript_id} got {parsed_df['transcript_id']}",
         )
 
     def test_parse_gtf_lines_without_expand_attributes(self):
