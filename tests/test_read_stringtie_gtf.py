@@ -7,7 +7,7 @@ from gtfparse import read_gtf
 
 class TestRefseqGTF(unittest.TestCase):
     def setUp(self):
-        self.b16_gtf_path = resource_filename("test", "data/B16.stringtie.head.gtf")
+        self.b16_gtf_path = resource_filename("tests", "data/B16.stringtie.head.gtf")
 
     def _check_required_columns(self, gtf_df):
         self.assertIn(

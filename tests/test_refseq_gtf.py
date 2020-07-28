@@ -7,7 +7,7 @@ from gtfparse import read_gtf
 
 class TestRefseqGTF(unittest.TestCase):
     def setUp(self):
-        self.refseq = resource_filename("test", "data/refseq.ucsc.small.gtf")
+        self.refseq = resource_filename("tests", "data/refseq.ucsc.small.gtf")
 
         self.assertTrue(exists(self.refseq), msg="Cannot find 'refseq.ucsc.small.gtf'")
 

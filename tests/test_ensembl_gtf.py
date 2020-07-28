@@ -7,7 +7,7 @@ from gtfparse import read_gtf
 
 class TestEnsemblGTF(unittest.TestCase):
     def setUp(self):
-        self.ensembl_gtf = resource_filename("test", "data/ensembl_grch37.head.gtf")
+        self.ensembl_gtf = resource_filename("tests", "data/ensembl_grch37.head.gtf")
         self.expected_features = pd.Series(
             ["gene", "transcript", "exon", "CDS", "UTR", "start_codon", "stop_codon"],
             dtype=str,

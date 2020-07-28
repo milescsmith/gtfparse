@@ -52,7 +52,7 @@ setup(
     name="gtfparse",
     packages=find_packages(where="src"),
     package_dir={"gtfparse": "src/gtfparse"},
-    package_data={"": ["gtfparse/test/data/*.*"]},
+    package_data={"": ["gtfparse/tests/data/*.*"]},
     include_package_data=True,
     version=version,
     description="GTF Parsing",
