@@ -208,9 +208,6 @@ def parse_gtf_and_expand_attributes(
     restrict_attribute_columns : list/set of str or None
         If given, then only attribute columns.
 
-    kv_split : str (default " ")
-        Delimiter to use when splitting individual attribute key:value pairs
-
     features : set or None
         Ignore entries which don't correspond to one of the supplied features
     """
@@ -304,7 +301,7 @@ def read_gtf(
     usecols: Optional[List[str]] = None,
     features: List[str] = None,
     chunksize: int = 1024 * 1024,
-) -> pd.DataFrame:
+):
     """
     Parse a GTF into a dictionary mapping column names to sequences of values.
 
@@ -335,9 +332,6 @@ def read_gtf(
 
     features : set of str or None
         Drop rows which aren't one of the features in the supplied set
-    
-    kv_split : str (default " ")
-        Delimiter to use when splitting individual attribute key:value pairs
 
     chunksize : int
     """
@@ -351,10 +345,7 @@ def read_gtf(
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
-            filepath_or_buffer,
-            chunksize=chunksize,
-            restrict_attribute_columns=usecols,
-            kv_split=kv_split,
+            filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols
         )
     else:
         result_df = parse_gtf(
