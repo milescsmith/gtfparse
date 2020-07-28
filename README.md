@@ -1,5 +1,5 @@
 ![GitHub](https://img.shields.io/github/license/milescsmith/gtfparse)
-[![Build Status](https://travis-ci.org/milescsmith/gtfparse.svg?branch=master)](https://travis-ci.org/milescsmith/gtfparse)
+[![Build Status](https://travis-ci.com/milescsmith/gtfparse.svg?branch=master)](https://travis-ci.com/milescsmith/gtfparse)
 [![Coverage Status](https://coveralls.io/repos/github/milescsmith/gtfparse/badge.svg?branch=master)](https://coveralls.io/github/milescsmith/gtfparse?branch=master)
 [![CodeFactor](https://www.codefactor.io/repository/github/milescsmith/gtfparse/badge)](https://www.codefactor.io/repository/github/milescsmith/gtfparse)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
