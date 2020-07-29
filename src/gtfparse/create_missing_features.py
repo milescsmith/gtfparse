@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 def create_missing_features(
     dataframe: pd.DataFrame,
-    unique_keys: Optional[Dict[str, str]] = None,
-    extra_columns: Optional[Dict[str, str]] = None,
+    unique_keys: Dict[str, str],
+    extra_columns: Dict[str, str] = None,
     missing_value: Optional[Any] = None,
 ):
     """
@@ -78,7 +78,7 @@ def create_missing_features(
         feature_values = OrderedDict(
             [
                 (column_name, [missing_value] * row_groups.ngroups)
-                for column_name in dataframe.keys()
+                for column_name in dataframe.columns
             ]
         )
 

@@ -1,8 +1,5 @@
 import unittest
 from io import StringIO
-from os.path import exists
-
-from pkg_resources import resource_filename
 
 from gtfparse import create_missing_features, parse_gtf_and_expand_attributes
 
@@ -10,15 +7,18 @@ from gtfparse import create_missing_features, parse_gtf_and_expand_attributes
 # exon features, but from which gene and transcript information could be
 # inferred
 
+NEWLINE = "\n"
+TAB = "\t"
+
 
 class TestCreateMissingFeatures(unittest.TestCase):
     def setUp(self):
         self.gtf_text = (
             f"# seqname biotype feature start end score strand frame attribute\n"
-            f"18\tprotein_coding\tstop_codon\t32630766\t32630768\t.\t-\t0\t"
+            f"18{TAB}protein_coding{TAB}stop_codon{TAB}32630766{TAB}32630768{TAB}.{TAB}-{TAB}0{TAB}"
             f'gene_id "ENSG00000134779"; transcript_id "ENST00000334295"; exon_number "7";'
             f'gene_name "C18orf10";transcript_name "C18orf10-201"\n'
-            f'18\tprotein_coding\texon\t32663078\t32663157\t.\t+\t.\tgene_id "ENSG00000150477"; '
+            f'18{TAB}protein_coding{TAB}exon{TAB}32663078{TAB}32663157{TAB}.{TAB}+{TAB}.{TAB}gene_id "ENSG00000150477"; '
             f'transcript_id "ENST00000383055"; exon_number "1"; gene_name "KIAA1328"; '
             f'transcript_name "KIAA1328-202";'
         )
@@ -86,7 +86,7 @@ class TestCreateMissingFeatures(unittest.TestCase):
         self.assertEqual(
             len(df[KIAA1328_gene_mask]),
             1,
-            msg=f"Expected only 1 gene entry for KIAA1328",
+            msg=f"Expected only 1 gene entry for KIAA1328, found {len(df[KIAA1328_gene_mask])}",
         )
 
         gene_seqname = df[KIAA1328_gene_mask].seqname.iloc[0]

@@ -13,39 +13,21 @@
 # limitations under the License.
 
 import os
-import re
 import sys
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")
 
-readme_filename = "README.md"
-current_directory = os.path.dirname(__file__)
-readme_path = os.path.join(current_directory, readme_filename)
-
-readme_markdown = ""
 try:
-    with open(readme_path, "r") as f:
-        readme_markdown = f.read()
-except Exception as e:
-    print(e)
-    print(f"Failed to open {readme_path}")
-
-try:
-    import pypandoc
-
-    readme_restructured = pypandoc.convert(readme_markdown, to="rst", format="md")
-except Exception as e:
-    readme_restructured = readme_markdown
-    print(e)
-    print(f"Failed to convert {readme_filename} from Markdown to reStructuredText")
-
-with open("src/gtfparse/__init__.py", "r") as f:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
-    ).group(1)
+    with open(os.path.join("src", "gtfparse", "__about__.py")) as f:
+        exec(f.read())
+except:
+    __author__ = ("Alex Rubinsteyn", "Miles Smith")
+    __email__ = ("alex.rubinsteyn@gmail.com", "miles-smith@omrf.org")
+    __version__ = "?"
 
 
 setup(
@@ -54,11 +36,11 @@ setup(
     package_dir={"gtfparse": "src/gtfparse"},
     package_data={"": ["gtfparse/tests/data/*.*"]},
     include_package_data=True,
-    version=version,
-    description="GTF Parsing",
-    long_description=readme_restructured,
+    version=__version__,
+    description="Parsing of General Transfer Format(GTF)/General Feature Format 3 (GFF3) genetic annotation files",
+    long_description=Path("README.rst").read_text("utf-8"),
     python_requires=">=3.6",
-    url="https://github.com/openvax/gtfparse",
+    url="https://github.com/milescsmith/gtfparse",
     author=["Alex Rubinsteyn", "Miles Smith"],
     license="http://www.apache.org/licenses/LICENSE-2.0.html",
     classifiers=[

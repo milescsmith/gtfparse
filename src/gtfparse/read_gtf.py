@@ -17,7 +17,7 @@ import re
 from io import StringIO
 from math import ceil
 from os import stat
-from os.path import basename, exists
+from os.path import exists
 from sys import intern
 from typing import Callable, Dict, List, Optional, Union, Tuple
 
@@ -25,7 +25,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from .attribute_parsing import expand_attribute_strings
 from .logging import setup_logging
 from .parsing_error import ParsingError
 
@@ -34,7 +33,6 @@ def parse_gtf(
     filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
     features: Optional[Tuple[str]] = None,
-    fix_quotes_columns: Tuple[str] = ("attribute"),
 ) -> pd.DataFrame:
     """
     Parameters
@@ -46,11 +44,11 @@ def parse_gtf(
 
     features : set or None
         Drop entries which aren't one of these features
-
     
-    fix_quotes_columns : list
-        Most commonly the 'attribute' column which had broken quotes on
-        some Ensembl release GTF files.
+    Returns
+    -------
+
+    :class:~pd.DataFrame
     """
     logger = logging.getLogger("gtfparse")
 
@@ -149,30 +147,20 @@ def parse_gtf(
         logger.info("swifter found, processing in parallel")
         logger.info("Repairing non-standard 'attributes'")
         df["attribute"] = (
-            df["attribute"]
-            .swifter.progress_bar(True)
-            .apply(fix_attribute_column)
+            df["attribute"].swifter.progress_bar(True).apply(fix_attribute_column)
         )
 
         logger.info("Converting non-integer 'start' values to 0")
         df["start"] = (
-            df["start"]
-            .swifter.progress_bar(True)
-            .apply(np.nan_to_num)
-            .astype(np.int32)
+            df["start"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int32)
         )
         logger.info("Converting non-integer 'end' values to 0")
         df["end"] = (
-            df["end"]
-            .swifter.progress_bar(True)
-            .apply(np.nan_to_num)
-            .astype(np.int32)
+            df["end"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int32)
         )
     except ImportError:
         logger.info("Repairing non-standard 'attributes'")
-        df["attribute"] = df["attribute"].apply(
-            fix_attribute_column
-        )
+        df["attribute"] = df["attribute"].apply(fix_attribute_column)
         logger.info("Converting non-integer 'start' values to 0")
         df["start"] = df["start"].apply(np.nan_to_num).astype(np.int32)
         logger.info("Converting non-integer 'end' values to 0")
@@ -182,10 +170,10 @@ def parse_gtf(
 
 
 def parse_gtf_and_expand_attributes(
-    filepath_or_buffer: str,
+    filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
     restrict_attribute_columns: Union[List[str]] = None,
-    features: List[str] = None,
+    features: Tuple[str] = None,
 ):
     """
     Parse lines into column->values dictionary and then expand
@@ -225,12 +213,12 @@ def parse_gtf_and_expand_attributes(
 
         attr_dict: Dict[str, str] = {}
         keys = [
-            re.split("\s+|=+|,+", _)[0]
+            re.split(r"\s+|=+|,+", _)[0]
             for _ in re.split(r";\s*", attributes)
             if len(re.split(r"\s|=", _)) == 2
         ]
         values = [
-            re.split("\s+|=+|,+", _)[1]
+            re.split(r"\s+|=+|,+", _)[1]
             for _ in re.split(r";\s*", attributes)
             if len(re.split(r"\s|=", _)) == 2
         ]
@@ -287,12 +275,12 @@ def parse_gtf_and_expand_attributes(
 
 
 def read_gtf(
-    filepath_or_buffer: str,
+    filepath_or_buffer: Union[str, StringIO],
     expand_attribute_column: bool = True,
     infer_biotype_column: bool = False,
     column_converters: Optional[Dict[str, Callable[..., str]]] = None,
     usecols: Optional[List[str]] = None,
-    features: List[str] = None,
+    features: Tuple[str] = None,
     chunksize: int = 1024 * 1024,
 ):
     """

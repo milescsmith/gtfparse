@@ -35,7 +35,7 @@ def expand_attribute_strings(
 
     quote_char : str
         Quote character to remove from values
-    
+
     kv_split : str (default " ")
         Delimiter to use when splitting individual attribute key:value pairs
 
