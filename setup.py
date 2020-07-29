@@ -24,7 +24,7 @@ if sys.version_info < (3, 6):
 try:
     with open(os.path.join("src", "gtfparse", "__about__.py")) as f:
         exec(f.read())
-except:
+except OSError:
     __author__ = ("Alex Rubinsteyn", "Miles Smith")
     __email__ = ("alex.rubinsteyn@gmail.com", "miles-smith@omrf.org")
     __version__ = "?"
@@ -37,7 +37,10 @@ setup(
     package_data={"": ["gtfparse/tests/data/*.*"]},
     include_package_data=True,
     version=__version__,
-    description="Parsing of General Transfer Format(GTF)/General Feature Format 3 (GFF3) genetic annotation files",
+    description=(
+        f"Parsing of General Transfer Format(GTF)/General Feature"
+        f"Format 3 (GFF3) genetic annotation files"
+        ),
     long_description=Path("README.rst").read_text("utf-8"),
     python_requires=">=3.6",
     url="https://github.com/milescsmith/gtfparse",

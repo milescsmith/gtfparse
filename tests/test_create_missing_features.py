@@ -14,13 +14,17 @@ TAB = "\t"
 class TestCreateMissingFeatures(unittest.TestCase):
     def setUp(self):
         self.gtf_text = (
-            f"# seqname biotype feature start end score strand frame attribute\n"
-            f"18{TAB}protein_coding{TAB}stop_codon{TAB}32630766{TAB}32630768{TAB}.{TAB}-{TAB}0{TAB}"
-            f'gene_id "ENSG00000134779"; transcript_id "ENST00000334295"; exon_number "7";'
-            f'gene_name "C18orf10";transcript_name "C18orf10-201"\n'
-            f'18{TAB}protein_coding{TAB}exon{TAB}32663078{TAB}32663157{TAB}.{TAB}+{TAB}.{TAB}gene_id "ENSG00000150477"; '
-            f'transcript_id "ENST00000383055"; exon_number "1"; gene_name "KIAA1328"; '
-            f'transcript_name "KIAA1328-202";'
+            f'# seqname biotype feature start end score strand frame '
+            f'attribute\n'
+            f'18{TAB}protein_coding{TAB}stop_codon{TAB}32630766{TAB}'
+            f'32630768{TAB}.{TAB}-{TAB}0{TAB}'
+            f'gene_id "ENSG00000134779"; transcript_id "ENST00000334295"; '
+            f'exon_number "7";gene_name "C18orf10";transcript_name '
+            f'"C18orf10-201"\n'
+            f'18{TAB}protein_coding{TAB}exon{TAB}32663078{TAB}32663157{TAB}'
+            f'.{TAB}+{TAB}.{TAB}gene_id "ENSG00000150477"; '
+            f'transcript_id "ENST00000383055"; exon_number "1"; gene_name '
+            f'"KIAA1328"; transcript_name "KIAA1328-202";'
         )
 
         self.gtf_df = parse_gtf_and_expand_attributes(StringIO(self.gtf_text))
