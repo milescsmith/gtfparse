@@ -19,8 +19,6 @@ from .parsing_error import ParsingError
 from .read_gtf import parse_gtf, parse_gtf_and_expand_attributes, read_gtf
 from .required_columns import REQUIRED_COLUMNS
 
-__version__ = "1.4.1"
-
 __all__ = [
     "expand_attribute_strings",
     "create_missing_features",
