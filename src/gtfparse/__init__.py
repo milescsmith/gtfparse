@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .attribute_parsing import expand_attribute_strings
 from .create_missing_features import create_missing_features
 from .logging import setup_logging
 from .parsing_error import ParsingError
@@ -22,12 +21,11 @@ from .required_columns import REQUIRED_COLUMNS
 __version__ = "1.4.1"
 
 __all__ = [
-    "expand_attribute_strings",
     "create_missing_features",
     "parse_gtf",
     "parse_gtf_and_expand_attributes",
     "REQUIRED_COLUMNS",
     "ParsingError",
     "read_gtf",
-    "logging",
+    "setup_logging",
 ]
