@@ -21,15 +21,6 @@ from setuptools import find_packages, setup
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")
 
-try:
-    with open(os.path.join("src", "gtfparse", "__about__.py")) as f:
-        exec(f.read())
-except OSError:
-    __author__ = ("Alex Rubinsteyn", "Miles Smith")
-    __email__ = ("alex.rubinsteyn@gmail.com", "miles-smith@omrf.org")
-    __version__ = "?"
-
-
 setup(
     name="gtfparse",
     packages=find_packages(where="src"),
@@ -61,5 +52,5 @@ setup(
         "Operating System :: POSIX :: Linux",
     ],
     install_requires=["numpy>=1.15", "pandas>=1.0.5", "tqdm>=4.31"],
-    extra_requires={"parallel": ["swifter~=0.3"]},
+    extras_require={"parallel": ["swifter~=0.3"]},
 )
