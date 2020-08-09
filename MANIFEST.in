@@ -1,0 +1,9 @@
+exclude *.ipynb
+include *.txt
+include LICENSE
+include mypy.ini
+include pylintrc
+include tox.ini
+recursive-include tests *.gtf
+recursive-include tests *.gz
+recursive-include tests *.py

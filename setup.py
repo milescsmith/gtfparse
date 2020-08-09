@@ -17,26 +17,24 @@ import sys
 from pathlib import Path
 
 from setuptools import find_packages, setup
+from setuptools_scm import get_version
 
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")
 
-try:
-    with open(os.path.join("src", "gtfparse", "__about__.py")) as f:
-        exec(f.read())
-except OSError:
-    __author__ = ("Alex Rubinsteyn", "Miles Smith")
-    __email__ = ("alex.rubinsteyn@gmail.com", "miles-smith@omrf.org")
-    __version__ = "?"
-
-
 setup(
     name="gtfparse",
+    use_scm_version = {
+        "root": ".",
+        "relative_to": __file__,
+        "local_scheme": "node-and-timestamp"
+    },
+    setup_requires=['setuptools_scm'],
     packages=find_packages(where="src"),
     package_dir={"gtfparse": "src/gtfparse"},
     package_data={"": ["gtfparse/tests/data/*.*"]},
     include_package_data=True,
-    version=__version__,
+    version=get_version(),
     description=(
         f"Parsing of General Transfer Format(GTF)/General Feature"
         f"Format 3 (GFF3) genetic annotation files"
@@ -61,5 +59,5 @@ setup(
         "Operating System :: POSIX :: Linux",
     ],
     install_requires=["numpy>=1.15", "pandas>=1.0.5", "tqdm>=4.31"],
-    extra_requires={"parallel": ["swifter~=0.3"]},
+    extras_require={"parallel": ["swifter~=0.3"]},
 )
