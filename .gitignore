@@ -65,3 +65,4 @@ target/
 .pytest_cache/
 .pytest_cache/*
 .coveralls.yml
+.vscode/settings.json

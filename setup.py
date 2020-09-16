@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import os
-import re
 import sys
+from pathlib import Path
 
 from setuptools import find_packages, setup
+from setuptools_scm import get_version
 
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")
@@ -49,15 +50,24 @@ with open("src/gtfparse/__init__.py", "r") as f:
 
 setup(
     name="gtfparse",
+    use_scm_version = {
+        "root": ".",
+        "relative_to": __file__,
+        "local_scheme": "node-and-timestamp"
+    },
+    setup_requires=['setuptools_scm'],
     packages=find_packages(where="src"),
     package_dir={"gtfparse": "src/gtfparse"},
     package_data={"": ["gtfparse/tests/data/*.*"]},
     include_package_data=True,
-    version=version,
-    description="GTF Parsing",
-    long_description=readme_restructured,
+    version=get_version(),
+    description=(
+        f"Parsing of General Transfer Format(GTF)/General Feature"
+        f"Format 3 (GFF3) genetic annotation files"
+        ),
+    long_description=Path("README.rst").read_text("utf-8"),
     python_requires=">=3.6",
-    url="https://github.com/openvax/gtfparse",
+    url="https://github.com/milescsmith/gtfparse",
     author=["Alex Rubinsteyn", "Miles Smith"],
     license="http://www.apache.org/licenses/LICENSE-2.0.html",
     classifiers=[
@@ -75,5 +85,5 @@ setup(
         "Operating System :: POSIX :: Linux",
     ],
     install_requires=["numpy>=1.15", "pandas>=1.0.5", "tqdm>=4.31"],
-    extra_requires={"parallel": ["swifter~=0.3"]},
+    extras_require={"parallel": ["swifter~=0.3"]},
 )

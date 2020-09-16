@@ -78,7 +78,7 @@ def create_missing_features(
         feature_values = OrderedDict(
             [
                 (column_name, [missing_value] * row_groups.ngroups)
-                for column_name in dataframe.keys()
+                for column_name in dataframe.columns
             ]
         )
 
