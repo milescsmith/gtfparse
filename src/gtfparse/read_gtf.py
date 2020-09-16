@@ -17,7 +17,6 @@ import re
 from io import StringIO
 from math import ceil
 from os import stat
-from os.path import basename, exists
 from sys import intern
 from typing import Callable, Dict, List, Optional, Union, Tuple
 
@@ -25,7 +24,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from .attribute_parsing import expand_attribute_strings
 from .logging import setup_logging
 from .parsing_error import ParsingError
 
@@ -34,7 +32,6 @@ def parse_gtf(
     filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
     features: Optional[Tuple[str]] = None,
-    fix_quotes_columns: Tuple[str] = ("attribute"),
 ) -> pd.DataFrame:
     """
     Parameters
@@ -47,7 +44,7 @@ def parse_gtf(
     features : set or None
         Drop entries which aren't one of these features
 
-    
+
     fix_quotes_columns : list
         Most commonly the 'attribute' column which had broken quotes on
         some Ensembl release GTF files.
@@ -78,9 +75,8 @@ def parse_gtf(
 
     def parse_frame(s: str) -> int:
         if s == ".":
-            return 0
-        else:
-            return int(s)
+            s = 0
+        return int(s)
 
     def fix_attribute_column(attribute: str) -> str:
         return attribute.replace(';"', '"').replace(";-", "-").replace("; ", ";")

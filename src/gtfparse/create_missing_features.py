@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 def create_missing_features(
     dataframe: pd.DataFrame,
     unique_keys: Optional[Dict[str, str]] = None,
-    extra_columns: Optional[Dict[str, str]] = None,
+    extra_columns: Optional[Dict[str, Set[str]]] = None,
     missing_value: Optional[Any] = None,
 ):
     """

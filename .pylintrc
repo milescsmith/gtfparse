@@ -4,3 +4,7 @@
 ignored-modules = numpy
 # getting 'no-value-for-parameter' from nose.tools.assert_raises
 ignored-classes = nose.tools
+
+no-name-in-module
+too-many-arguments
+invalid-name

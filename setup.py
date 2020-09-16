@@ -35,7 +35,6 @@ except Exception as e:
 
 try:
     import pypandoc
-
     readme_restructured = pypandoc.convert(readme_markdown, to="rst", format="md")
 except Exception as e:
     readme_restructured = readme_markdown
