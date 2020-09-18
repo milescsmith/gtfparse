@@ -17,6 +17,7 @@ from .logging import setup_logging
 from .parsing_error import ParsingError
 from .read_gtf import parse_gtf, parse_gtf_and_expand_attributes, read_gtf
 from .required_columns import REQUIRED_COLUMNS
+from .write_gtf import df_to_gtf
 from sys import version_info
 
 if version_info < (3, 8):
@@ -36,6 +37,9 @@ __all__ = [
     "parse_gtf_and_expand_attributes",
     "REQUIRED_COLUMNS",
     "ParsingError",
+    "parse_gtf",
+    "parse_gtf_and_expand_attributes",
     "read_gtf",
     "setup_logging",
+    "df_to_gtf",
 ]
