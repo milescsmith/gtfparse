@@ -25,10 +25,10 @@ if sys.version_info < (3, 6):
 
 current_directory = os.path.dirname(__file__)
 
-with open("src/gtfparse/__init__.py", "r") as f:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
-    ).group(1)
+# with open("src/gtfparse/__init__.py", "r") as f:
+#     version = re.search(
+#         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
+#     ).group(1)
 
 
 setup(
