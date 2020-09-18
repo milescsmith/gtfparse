@@ -22,25 +22,7 @@ from setuptools_scm import get_version
 if sys.version_info < (3, 6):
     sys.exit("pygmst requires Python >= 3.6")
 
-readme_filename = "README.md"
 current_directory = os.path.dirname(__file__)
-readme_path = os.path.join(current_directory, readme_filename)
-
-readme_markdown = ""
-try:
-    with open(readme_path, "r") as f:
-        readme_markdown = f.read()
-except Exception as e:
-    print(e)
-    print(f"Failed to open {readme_path}")
-
-try:
-    import pypandoc
-    readme_restructured = pypandoc.convert(readme_markdown, to="rst", format="md")
-except Exception as e:
-    readme_restructured = readme_markdown
-    print(e)
-    print(f"Failed to convert {readme_filename} from Markdown to reStructuredText")
 
 with open("src/gtfparse/__init__.py", "r") as f:
     version = re.search(
