@@ -3,14 +3,12 @@ from io import StringIO
 
 from gtfparse import parse_gtf_and_expand_attributes
 
-TAB = "\t"
-
 
 class TestMultipleValuesforTagAttribute(unittest.TestCase):
     # failing example from https://github.com/openvax/gtfparse/issues/2
     def setUp(self):
         self.gtf_text = (
-            f'1{TAB}protein_coding{TAB}exon{TAB}860260{TAB}860328{TAB}.{TAB}+{TAB}.{TAB}'
+            f'1\tprotein_coding\texon\t860260\t860328\t.\t+\t.\t'
             f'gene_id "ENSG00000187634"; transcript_id "ENST00000420190"; '
             f'exon_number "1"; gene_name "SAMD11"; gene_source "ensembl_havana"; '
             f'gene_biotype "protein_coding"; transcript_name "SAMD11-011"; '

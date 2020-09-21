@@ -11,21 +11,18 @@ from gtfparse import (
     parse_gtf_and_expand_attributes,
 )
 
-NEWLINE = "\n"
-TAB = "\t"
-
 
 class TestParseGTF(unittest.TestCase):
     def setUp(self):
         self.gtf_text = (
-            f"# sample GTF data copied from:{NEWLINE}"
-            f"# http://useast.ensembl.org/info/website/upload/gff.html?redirect=no{NEWLINE}"
-            f'1{TAB}transcribed_unprocessed_pseudogene{TAB}gene{TAB}11869{TAB}'
-            f'14409{TAB}.{TAB}+{TAB}.{TAB}gene_id "ENSG00000223972"; '
+            f"# sample GTF data copied from:\n"
+            f"# http://useast.ensembl.org/info/website/upload/gff.html?redirect=no\n"
+            f'1\ttranscribed_unprocessed_pseudogene\tgene\t11869\t'
+            f'14409\t.\t+\t.\tgene_id "ENSG00000223972"; '
             f'gene_name "DDX11L1"; gene_source "havana"; gene_biotype '
-            f'"transcribed_unprocessed_pseudogene";{NEWLINE}'
-            f'1{TAB}processed_transcript{TAB}transcript{TAB}11869{TAB}'
-            f'14409{TAB}.{TAB}+{TAB}.{TAB}gene_id "ENSG00000223972";'
+            f'"transcribed_unprocessed_pseudogene";\n'
+            f'1\tprocessed_transcript\ttranscript\t11869\t'
+            f'14409\t.\t+\t.\tgene_id "ENSG00000223972";'
             f'transcript_id "ENST00000456328"; gene_name "DDX11L1";'
             f'gene_source "havana";'
             f'gene_biotype "transcribed_unprocessed_pseudogene";'
