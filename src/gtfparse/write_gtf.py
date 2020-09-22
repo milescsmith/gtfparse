@@ -1,4 +1,7 @@
+import logging
 import pandas as pd
+from tqdm import tqdm
+from .logging import setup_logging
 
 from .required_columns import REQUIRED_COLUMNS
 
@@ -24,7 +27,7 @@ def extract_seq_info(gtf_row: pd.Series):
                 )
             ]
         )
-        line_to_strings = required + "\t" + attributes + "\n"
+        line_to_strings = f"{required}\t{attributes}\n"
     except Exception:
         raise ValueError(gtf_row)
     return line_to_strings
@@ -42,7 +45,16 @@ def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
     filename : `str`
         name of file to write GTF out as
     """
-    line_to_strings = df.apply(extract_seq_info, axis=1)
+    setup_logging(name="gtfparse")
+    logger = logging.getLogger("gtfparse")
+    
+    try:
+        import swifter
+        logger.info("swifter found, processing in parallel")
+        line_to_strings = df.swifter.progress_bar(True).apply(extract_seq_info, axis=1)
+    except ImportError:
+        line_to_strings = df.apply(extract_seq_info, axis=1)
+
     with open(filename, "w") as gtfoutput:
         # gtfoutput.writelines("seqname\tsource\tfeature\tstart\tend\tscore\tstrand\tframe\tattributes\n")
         gtfoutput.writelines(line_to_strings)
