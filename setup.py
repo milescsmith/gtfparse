@@ -30,14 +30,17 @@ current_directory = os.path.dirname(__file__)
 #         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE
 #     ).group(1)
 
+scm_version_options = {
+    'write_to' : 'src/gtfparse/version.py',
+    "root": ".",
+    "relative_to": __file__,
+    "local_scheme": "node-and-timestamp",
+    "version_scheme": "post-release",
+    }
 
 setup(
     name="gtfparse",
-    use_scm_version = {
-        "root": ".",
-        "relative_to": __file__,
-        "local_scheme": "node-and-timestamp"
-    },
+    use_scm_version=scm_version_options,
     setup_requires=['setuptools_scm'],
     packages=find_packages(where="src"),
     package_dir={"gtfparse": "src/gtfparse"},
@@ -47,7 +50,7 @@ setup(
     description=(
         f"Parsing of General Transfer Format(GTF)/General Feature"
         f"Format 3 (GFF3) genetic annotation files"
-        ),
+    ),
     long_description=Path("README.rst").read_text("utf-8"),
     python_requires=">=3.6",
     url="https://github.com/milescsmith/gtfparse",

@@ -44,7 +44,7 @@ def parse_gtf(
 
     features : set or None
         Drop entries which aren't one of these features
-    
+
     Returns
     -------
 

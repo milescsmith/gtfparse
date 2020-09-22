@@ -7,7 +7,7 @@ from .required_columns import REQUIRED_COLUMNS
 
 
 def extract_seq_info(gtf_row: pd.Series):
-    """ Convert the data in the rows from a GTF/GFF3-formatted DataFrame
+    """Convert the data in the rows from a GTF/GFF3-formatted DataFrame
     into the appropriate tab- and semicolon-delimited string representations
     \f
     Parameters
@@ -34,7 +34,7 @@ def extract_seq_info(gtf_row: pd.Series):
 
 
 def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
-    """ Write a GTF/GFF3-formatted DataFrame out as a GTF
+    """Write a GTF/GFF3-formatted DataFrame out as a GTF
     \f
     Parameters
     ----------
@@ -47,9 +47,10 @@ def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
     """
     setup_logging(name="gtfparse")
     logger = logging.getLogger("gtfparse")
-    
+
     try:
         import swifter
+
         logger.info("swifter found, processing in parallel")
         line_to_strings = df.swifter.progress_bar(True).apply(extract_seq_info, axis=1)
     except ImportError:

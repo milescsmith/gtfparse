@@ -1,8 +1,6 @@
 [build-system]
 requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
-# [build-system]
-# requires = ["poetry_core"]
-# build-backend = "poetry.core.masonry.api"
+build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
@@ -10,4 +8,4 @@ target-version = ['py37', 'py38']
 skip-string-normalization = true
 
 [tool.setuptools_scm]
-write_to = "src/gtfparse/__about__.py"
+write_to = "src/gtfparse/version.py"
