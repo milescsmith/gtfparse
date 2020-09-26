@@ -68,4 +68,4 @@ target/
 .vscode/settings.json
 .python-version
 dask-worker-space/
-*.ipynb_checkpoints
+*.ipynb
