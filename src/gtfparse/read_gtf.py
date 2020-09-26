@@ -18,12 +18,16 @@ from io import StringIO
 from math import ceil
 from os import stat
 from os.path import exists
-from sys import intern
+from sys import intern, modules
 from typing import Callable, Dict, List, Optional, Union, Tuple
 
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
+
+try:
+    import modin.pandas as pd
+except ImportError:
+    import pandas as pd
 
 from .logging import setup_logging
 from .parsing_error import ParsingError
@@ -44,7 +48,7 @@ def parse_gtf(
 
     features : set or None
         Drop entries which aren't one of these features
-
+    
     Returns
     -------
 

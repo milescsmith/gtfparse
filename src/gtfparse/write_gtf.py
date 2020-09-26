@@ -1,7 +1,12 @@
 import logging
-import pandas as pd
+from sys import modules
 from tqdm import tqdm
 from .logging import setup_logging
+
+try:
+    import modin.pandas as pd
+except ImportError:
+    import pandas as pd
 
 from .required_columns import REQUIRED_COLUMNS
 

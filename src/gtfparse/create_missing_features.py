@@ -16,7 +16,10 @@ import logging
 from collections import OrderedDict
 from typing import Any, Dict, Optional, Set
 
-import pandas as pd
+try:
+    import modin.pandas as pd
+except ImportError:
+    import pandas as pd
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
