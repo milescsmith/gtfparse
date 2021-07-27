@@ -15,7 +15,6 @@
 import re
 from io import StringIO
 from math import ceil
-from os.path import exists
 from pathlib import Path
 from sys import intern
 from typing import Callable, Dict, List, Optional, Tuple, Union
@@ -25,7 +24,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from . import gtfparse_logger as logger
+from .logging import gtfparse_logger as logger
 from .parsing_error import ParsingError
 
 
@@ -113,8 +112,7 @@ def parse_gtf(
         dtype={"score": np.float32, "attribue": str, "strand": "category"},
         skipinitialspace=True,
         skip_blank_lines=True,
-        error_bad_lines=True,
-        warn_bad_lines=True,
+        on_bad_lines="warn",
         chunksize=chunksize,
         engine="c",
         na_values=".",

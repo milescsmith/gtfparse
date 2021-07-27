@@ -49,3 +49,6 @@ def setup_logging(name: Optional[str] = None, level="DEBUG") -> logging.Logger:
     logger.addHandler(fh)
 
     return logger
+
+
+gtfparse_logger = setup_logging("gtfparse")

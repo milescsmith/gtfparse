@@ -14,7 +14,7 @@
 
 from collections import OrderedDict
 from typing import Any, Dict, Optional, Set
-from . import gtfparse_logger as logger
+from .logging import gtfparse_logger as logger
 
 import pandas as pd
 

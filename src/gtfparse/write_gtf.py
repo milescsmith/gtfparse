@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from tqdm import tqdm
 
-from . import gtfparse_logger as logger
+from .logging import gtfparse_logger as logger
 from .required_columns import REQUIRED_COLUMNS
 
 
