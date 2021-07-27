@@ -1,6 +1,7 @@
 import logging
 
-import pandas as pd
+# import pandas as pd
+import modin.pandas as pd
 from tqdm import tqdm
 
 from .logging import gtfparse_logger as logger

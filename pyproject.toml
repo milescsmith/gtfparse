@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtfparse"
-version = "1.5.4"
+version = "1.6.0"
 description = "Parsing of General Transfer Format(GTF)/General Feature Format 3 (GFF3) genetic annotation files"
 authors = ["Alex Rubinsteyn <alex.rubinsteyn@gmail.com>", "Miles Smith <miles-smith@omrf.org>"]
 maintainers = ["Miles Smith <miles-smith@omrf.org>"]
@@ -33,6 +33,7 @@ tqdm = "^4.61.2"
 swifter = { version = "^1.0.0", optional = true }
 dask = { version = "^2.25.0", optional = true}
 coloredlogs = "^15.0.1"
+modin = "^0.10.1"
 
 [tool.poetry.extras]
 parallel = ["swifter", "dask"]

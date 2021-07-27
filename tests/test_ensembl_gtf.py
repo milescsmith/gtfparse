@@ -1,6 +1,7 @@
 import unittest
 
-import pandas as pd
+# import pandas as pd
+import modin.pandas as pd
 from pkg_resources import resource_filename
 
 from gtfparse import read_gtf

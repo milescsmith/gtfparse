@@ -2,7 +2,8 @@ import unittest
 from io import StringIO
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
+import modin.pandas as pd
 
 from gtfparse import (REQUIRED_COLUMNS, ParsingError, parse_gtf,
                       parse_gtf_and_expand_attributes)

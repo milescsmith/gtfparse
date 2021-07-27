@@ -16,7 +16,8 @@ from collections import OrderedDict
 from typing import Any, Dict, Optional, Set
 from .logging import gtfparse_logger as logger
 
-import pandas as pd
+# import pandas as pd
+import modin.pandas as pd
 
 
 def create_missing_features(

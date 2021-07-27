@@ -20,7 +20,8 @@ from sys import intern
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import pandas as pd
+#import pandas as pd
+import modin.pandas as pd
 from tqdm import tqdm
 
 from .logging import gtfparse_logger as logger
