@@ -15,10 +15,11 @@
 import re
 from io import StringIO
 from math import ceil
-from os import stat
 from os.path import exists
+from pathlib import Path
 from sys import intern
 from typing import Callable, Dict, List, Optional, Tuple, Union
+from isort import file
 
 import numpy as np
 import pandas as pd
@@ -29,7 +30,7 @@ from .parsing_error import ParsingError
 
 
 def parse_gtf(
-    filepath_or_buffer: Union[str, StringIO],
+    filepath_or_buffer: Union[str, StringIO, Path],
     chunksize: int = 1024 * 1024,
     features: Optional[Tuple[str]] = None,
 ) -> pd.DataFrame:
@@ -71,6 +72,13 @@ def parse_gtf(
     # 8) frame : 0, 1, 2 or "."
     # 9) attribute : key-value pairs separated by semicolons
     # (see more complete description in docstring at top of file)
+
+    if isinstance(filepath_or_buffer, str):
+        filepath_or_buffer = Path(filepath_or_buffer)
+
+    if not filepath_or_buffer.exists():
+        logger.exception(f"{filepath_or_buffer.resolve()} cannot be found.")
+        raise FileNotFoundError
 
     def parse_frame(s: str) -> int:
         if s == ".":
@@ -120,10 +128,13 @@ def parse_gtf(
         low_memory=False,
     )
 
-    if isinstance(filepath_or_buffer, str):
-        file_size = stat(filepath_or_buffer).st_size
-    elif isinstance(filepath_or_buffer, StringIO):
+    if isinstance(filepath_or_buffer, StringIO):
         file_size = len(filepath_or_buffer.getvalue())
+    elif isinstance(filepath_or_buffer, Path):
+        file_size = filepath_or_buffer.stat().st_size
+    else:
+        logger.exception("File is of unknown type.  Cannot determine its size.")
+        raise RuntimeError
 
     try:
         for df in tqdm(
@@ -274,7 +285,7 @@ def parse_gtf_and_expand_attributes(
 
 
 def read_gtf(
-    filepath_or_buffer: Union[str, StringIO],
+    filepath_or_buffer: Union[str, StringIO, Path],
     expand_attribute_column: bool = True,
     infer_biotype_column: bool = False,
     column_converters: Optional[Dict[str, Callable[..., str]]] = None,
@@ -315,10 +326,12 @@ def read_gtf(
 
     chunksize : int
     """
+    if isinstance(filepath_or_buffer, str):
+        filepath_or_buffer = Path(filepath_or_buffer)
 
-    if isinstance(filepath_or_buffer, str) and not exists(filepath_or_buffer):
+    if isinstance(filepath_or_buffer, Path) and not filepath_or_buffer.exists():
         logger.exception(f"GTF file does not exist: {filepath_or_buffer}")
-        raise ValueError
+        raise FileNotFoundError
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
