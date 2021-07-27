@@ -195,7 +195,6 @@ def parse_gtf_and_expand_attributes(
     features : set or None
         Ignore entries which don't correspond to one of the supplied features
     """
-
     df = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
 
     logger.info("Expanding attributes")
