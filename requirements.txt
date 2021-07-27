@@ -1,4 +1,0 @@
-numpy ~= 1.18
-pandas ~= 1.0.5
-tqdm ~= 4.31
-setuptools-scm ~= 4.1

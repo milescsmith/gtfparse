@@ -11,17 +11,17 @@ from gtfparse import create_missing_features, parse_gtf_and_expand_attributes
 class TestCreateMissingFeatures(unittest.TestCase):
     def setUp(self):
         self.gtf_text = (
-            f'# seqname biotype feature start end score strand frame '
-            f'attribute\n'
-            f'18\tprotein_coding\tstop_codon\t32630766\t'
-            f'32630768\t.\t-\t0\t'
-            f'gene_id "ENSG00000134779"; transcript_id "ENST00000334295"; '
-            f'exon_number "7";gene_name "C18orf10";transcript_name '
-            f'"C18orf10-201"\n'
-            f'18\tprotein_coding\texon\t32663078\t32663157\t'
-            f'.\t+\t.\tgene_id "ENSG00000150477"; '
-            f'transcript_id "ENST00000383055"; exon_number "1"; gene_name '
-            f'"KIAA1328"; transcript_name "KIAA1328-202";'
+            "# seqname biotype feature start end score strand frame "
+            "attribute\n"
+            "18\tprotein_coding\tstop_codon\t32630766\t"
+            "32630768\t.\t-\t0\t"
+            'gene_id "ENSG00000134779"; transcript_id "ENST00000334295"; '
+            'exon_number "7";gene_name "C18orf10";transcript_name '
+            '"C18orf10-201"\n'
+            "18\tprotein_coding\texon\t32663078\t32663157\t"
+            '.\t+\t.\tgene_id "ENSG00000150477"; '
+            'transcript_id "ENST00000383055"; exon_number "1"; gene_name '
+            '"KIAA1328"; transcript_name "KIAA1328-202";'
         )
 
         self.gtf_df = parse_gtf_and_expand_attributes(StringIO(self.gtf_text))
@@ -47,7 +47,7 @@ class TestCreateMissingFeatures(unittest.TestCase):
         )
 
         C18orf10_201_transcript_mask = (df["feature"] == "transcript") & (
-            df["transcript_name"] == 'C18orf10-201'
+            df["transcript_name"] == "C18orf10-201"
         )
         self.assertEqual(
             len(df[C18orf10_201_transcript_mask]),
@@ -83,7 +83,7 @@ class TestCreateMissingFeatures(unittest.TestCase):
             msg=f"Wrong strand for C18orf10-201: {transcript_strand}",
         )
 
-        KIAA1328_gene_mask = (df["feature"] == "gene") & (df["gene_name"] == 'KIAA1328')
+        KIAA1328_gene_mask = (df["feature"] == "gene") & (df["gene_name"] == "KIAA1328")
         self.assertEqual(
             len(df[KIAA1328_gene_mask]),
             1,

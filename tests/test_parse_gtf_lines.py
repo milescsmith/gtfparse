@@ -4,29 +4,25 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 
-from gtfparse import (
-    REQUIRED_COLUMNS,
-    ParsingError,
-    parse_gtf,
-    parse_gtf_and_expand_attributes,
-)
+from gtfparse import (REQUIRED_COLUMNS, ParsingError, parse_gtf,
+                      parse_gtf_and_expand_attributes)
 
 
 class TestParseGTF(unittest.TestCase):
     def setUp(self):
         self.gtf_text = (
-            f"# sample GTF data copied from:\n"
-            f"# http://useast.ensembl.org/info/website/upload/gff.html?redirect=no\n"
-            f'1\ttranscribed_unprocessed_pseudogene\tgene\t11869\t'
-            f'14409\t.\t+\t.\tgene_id "ENSG00000223972"; '
-            f'gene_name "DDX11L1"; gene_source "havana"; gene_biotype '
-            f'"transcribed_unprocessed_pseudogene";\n'
-            f'1\tprocessed_transcript\ttranscript\t11869\t'
-            f'14409\t.\t+\t.\tgene_id "ENSG00000223972";'
-            f'transcript_id "ENST00000456328"; gene_name "DDX11L1";'
-            f'gene_source "havana";'
-            f'gene_biotype "transcribed_unprocessed_pseudogene";'
-            f'transcript_name "DDX11L1-002";transcript_source "havana";'
+            "# sample GTF data copied from:\n"
+            "# http://useast.ensembl.org/info/website/upload/gff.html?redirect=no\n"
+            "1\ttranscribed_unprocessed_pseudogene\tgene\t11869\t"
+            '14409\t.\t+\t.\tgene_id "ENSG00000223972"; '
+            'gene_name "DDX11L1"; gene_source "havana"; gene_biotype '
+            '"transcribed_unprocessed_pseudogene";\n'
+            "1\tprocessed_transcript\ttranscript\t11869\t"
+            '14409\t.\t+\t.\tgene_id "ENSG00000223972";'
+            'transcript_id "ENST00000456328"; gene_name "DDX11L1";'
+            'gene_source "havana";'
+            'gene_biotype "transcribed_unprocessed_pseudogene";'
+            'transcript_name "DDX11L1-002";transcript_source "havana";'
         )
         self.expanded_columns = pd.Index(
             REQUIRED_COLUMNS[:8]
@@ -45,9 +41,9 @@ class TestParseGTF(unittest.TestCase):
         self.expected_start = pd.Series([11869, 11869], dtype=np.int32)
         self.expected_end = pd.Series([14409, 14409], dtype=np.int32)
         self.expected_gene_id = pd.Series(
-            ['ENSG00000223972', 'ENSG00000223972'], dtype=object
+            ["ENSG00000223972", "ENSG00000223972"], dtype=object
         )
-        self.expected_transcript_id = pd.Series(["", 'ENST00000456328'], dtype=object)
+        self.expected_transcript_id = pd.Series(["", "ENST00000456328"], dtype=object)
         self.expected_attribute = pd.Series(
             [
                 'gene_id "ENSG00000223972";gene_name "DDX11L1";gene_source "havana";gene_biotype "transcribed_unprocessed_pseudogene";',
