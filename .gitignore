@@ -67,3 +67,8 @@ target/
 .coveralls.yml
 .vscode/settings.json
 .python-version
+
+# linting
+.pyre
+.idea
+.github
