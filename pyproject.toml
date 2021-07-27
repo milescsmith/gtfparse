@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtfparse"
-version = "1.5.2"
+version = "1.5.3"
 description = "Parsing of General Transfer Format(GTF)/General Feature Format 3 (GFF3) genetic annotation files"
 authors = ["Alex Rubinsteyn <alex.rubinsteyn@gmail.com>", "Miles Smith <miles-smith@omrf.org>"]
 maintainers = ["Miles Smith <miles-smith@omrf.org>"]

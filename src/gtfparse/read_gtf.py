@@ -18,7 +18,6 @@ from math import ceil
 from pathlib import Path
 from sys import intern
 from typing import Callable, Dict, List, Optional, Tuple, Union
-from isort import file
 
 import numpy as np
 import pandas as pd
