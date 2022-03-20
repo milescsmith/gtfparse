@@ -11,7 +11,7 @@ except ImportError:
 from .required_columns import REQUIRED_COLUMNS
 
 
-def extract_seq_info(gtf_row: pd.Series):
+def extract_seq_info(gtf_row: pd.Series) -> str:
     """Convert the data in the rows from a GTF/GFF3-formatted DataFrame
     into the appropriate tab- and semicolon-delimited string representations
     \f
@@ -50,8 +50,6 @@ def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
     filename : `str`
         name of file to write GTF out as
     """
-    setup_logging(name="gtfparse")
-    logger = logging.getLogger("gtfparse")
 
     try:
         import swifter

@@ -91,7 +91,7 @@ class TestEnsemblGTF(unittest.TestCase):
 
     def test_ensembl_gtf_columns(self):
         df = read_gtf(self.ensembl_gtf, expand_attribute_column=True)
-        features = pd.Series(df['feature'].str.strip('"').unique().astype(str))
+        features = pd.Series(df["feature"].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(features.isin(self.expected_features)),
             msg="Unexpected features found in ensembl_gtf",
@@ -99,7 +99,7 @@ class TestEnsemblGTF(unittest.TestCase):
 
     def test_ensembl_gtf_gene_names(self):
         df = read_gtf(self.ensembl_gtf, expand_attribute_column=True)
-        gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
+        gene_names = pd.Series(df["gene_name"].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),
             msg=(
@@ -113,7 +113,7 @@ class TestEnsemblGTF(unittest.TestCase):
         df = read_gtf(
             self.ensembl_gtf, usecols=["gene_name"], expand_attribute_column=True
         )
-        gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
+        gene_names = pd.Series(df["gene_name"].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),
             msg=(
@@ -125,7 +125,7 @@ class TestEnsemblGTF(unittest.TestCase):
 
     def test_ensembl_gtf_gene_names_zip(self):
         df = read_gtf(self.ensembl_gtf + ".gz", expand_attribute_column=True)
-        gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
+        gene_names = pd.Series(df["gene_name"].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),
             msg=(
@@ -141,7 +141,7 @@ class TestEnsemblGTF(unittest.TestCase):
             usecols=["gene_name"],
             expand_attribute_column=True,
         )
-        gene_names = pd.Series(df['gene_name'].str.strip('"').unique().astype(str))
+        gene_names = pd.Series(df["gene_name"].str.strip('"').unique().astype(str))
         self.assertTrue(
             all(gene_names.isin(self.expected_gene_names)),
             msg=(

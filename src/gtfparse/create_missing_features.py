@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from collections import OrderedDict
 from typing import Any, Dict, Optional, Set
+from .logging import gtfparse_logger as logger
 
 try:
     import modin.pandas as pd
 except ImportError:
     import pandas as pd
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def create_missing_features(
@@ -30,7 +27,7 @@ def create_missing_features(
     unique_keys: Optional[Dict[str, str]] = None,
     extra_columns: Optional[Dict[str, Set[str]]] = None,
     missing_value: Optional[Any] = None,
-):
+) -> pd.DataFrame:
     """
     Helper function used to construct a missing feature such as 'transcript'
     or 'gene'. Some GTF files only have 'exon' and 'CDS' entries, but have
@@ -59,68 +56,73 @@ def create_missing_features(
     Returns original dataframe along with all extra rows created for missing
     features.
     """
-    extra_dataframes = []
+    extra_dataframes = list()
+    if missing_value is None:
+        missing_value = ""
 
     existing_features = dataframe["feature"].unique()
     existing_columns = dataframe.columns.unique()
 
-    for (feature_name, groupby_key) in unique_keys.items():
-        if feature_name in existing_features:
-            logger.info(f"Feature '{feature_name}' already exists in GTF data")
-            continue
-        logger.info(f"Creating rows for missing feature '{feature_name}'")
+    if unique_keys is not None:
+        for (feature_name, groupby_key) in unique_keys.items():
+            if feature_name in existing_features:
+                logger.info(f"Feature '{feature_name}' already exists in GTF data")
+                continue
+            logger.info(f"Creating rows for missing feature '{feature_name}'")
 
-        # don't include rows where the groupby key was missing
-        empty_key_values = dataframe[groupby_key].map(lambda x: x == "" or x is None)
-        row_groups = dataframe[~empty_key_values].groupby(groupby_key)
+            # don't include rows where the groupby key was missing
+            empty_key_values = dataframe[groupby_key].map(lambda x: x == "" or x is None)
+            row_groups = dataframe[~empty_key_values].groupby(groupby_key)
 
-        # Each group corresponds to a unique feature entry for which the
-        # other columns may or may not be uniquely defined. Start off by
-        # assuming the values for every column are missing and fill them in
-        # where possible.
-        feature_values = OrderedDict(
-            [
-                (column_name, [missing_value] * row_groups.ngroups)
-                for column_name in dataframe.columns
-            ]
-        )
+            # Each group corresponds to a unique feature entry for which the
+            # other columns may or may not be uniquely defined. Start off by
+            # assuming the values for every column are missing and fill them in
+            # where possible.
+            feature_values = OrderedDict(
+                [
+                    (column_name, [missing_value] * row_groups.ngroups)
+                    for column_name in dataframe.columns
+                ]
+            )
 
-        # User specifies which non-required columns should we try to infer
-        # values for
-        feature_columns = list(extra_columns.get(feature_name, []))
+            # User specifies which non-required columns should we try to infer
+            # values for
+            if extra_columns is not None:
+                feature_columns = list(extra_columns.get(feature_name, []))
 
-        for i, (feature_id, group) in enumerate(row_groups):
-            # fill in the required columns by assuming that this feature
-            # is the union of all intervals of other features that were
-            # tagged with its unique ID (e.g. union of exons which had a
-            # particular gene_id).
-            feature_values["feature"][i] = feature_name
-            feature_values[groupby_key][i] = feature_id
-            # set the source to 'gtfparse' to indicate that we made this
-            # entry up from other data
-            feature_values["source"][i] = "gtfparse"
-            feature_values["start"][i] = group["start"].min()
-            feature_values["end"][i] = group["end"].max()
+            for i, (feature_id, group) in enumerate(row_groups):
+                # fill in the required columns by assuming that this feature
+                # is the union of all intervals of other features that were
+                # tagged with its unique ID (e.g. union of exons which had a
+                # particular gene_id).
+                feature_values["feature"][i] = feature_name
+                feature_values[groupby_key][i] = feature_id
+                # set the source to 'gtfparse' to indicate that we made this
+                # entry up from other data
+                feature_values["source"][i] = "gtfparse"
+                feature_values["start"][i] = group["start"].min()
+                feature_values["end"][i] = group["end"].max()
 
-            # assume that seqname and strand are the same for all other
-            # entries in the GTF which shared this unique ID
-            feature_values["seqname"][i] = group["seqname"].iat[0]
-            feature_values["strand"][i] = group["strand"].iat[0]
+                # assume that seqname and strand are the same for all other
+                # entries in the GTF which shared this unique ID
+                feature_values["seqname"][i] = group["seqname"].iat[0]
+                feature_values["strand"][i] = group["strand"].iat[0]
 
-            # there's probably no rigorous way to set the values of
-            # 'score' or 'frame' columns so leave them empty
-            for column_name in feature_columns:
-                if column_name not in existing_columns:
-                    raise ValueError(
-                        "Column '%s' does not exist in GTF, columns = %s"
-                        % (column_name, existing_columns)
-                    )
+                # there's probably no rigorous way to set the values of
+                # 'score' or 'frame' columns so leave them empty
+                if extra_columns is not None:
+                    for column_name in feature_columns:
+                        if column_name not in existing_columns:
+                            raise ValueError(
+                                "Column '%s' does not exist in GTF, columns = %s"
+                                % (column_name, existing_columns)
+                            )
 
-                # expect that all entries related to a reconstructed feature
-                # are related and are thus within the same interval of
-                # positions on the same chromosome
-                unique_values = group[column_name].dropna().unique()
-                if len(unique_values) == 1:
-                    feature_values[column_name][i] = unique_values[0]
-        extra_dataframes.append(pd.DataFrame(feature_values))
+                        # expect that all entries related to a reconstructed feature
+                        # are related and are thus within the same interval of
+                        # positions on the same chromosome
+                        unique_values = group[column_name].dropna().unique()
+                        if len(unique_values) == 1:
+                            feature_values[column_name][i] = unique_values[0]
+            extra_dataframes.append(pd.DataFrame(feature_values))
     return pd.concat([dataframe] + extra_dataframes, ignore_index=True)

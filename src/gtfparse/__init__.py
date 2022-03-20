@@ -13,23 +13,15 @@
 # limitations under the License.
 
 from .create_missing_features import create_missing_features
-from .logging import setup_logging
 from .parsing_error import ParsingError
 from .read_gtf import parse_gtf, parse_gtf_and_expand_attributes, read_gtf
 from .required_columns import REQUIRED_COLUMNS
 from .write_gtf import df_to_gtf
-from sys import version_info
+from .logging import setup_logging
 
-if version_info < (3, 8):
-    from importlib_metadata import version, PackageNotFoundError
-else:
-    from importlib.metadata import version, PackageNotFoundError
 
-try:
-    __version__ = version(__name__)
-except PackageNotFoundError:
-    # package is not installed
-    pass
+gtfparse_logger = setup_logging(__name__)
+
 
 __all__ = [
     "create_missing_features",

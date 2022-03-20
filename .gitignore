@@ -67,5 +67,10 @@ target/
 .coveralls.yml
 .vscode/settings.json
 .python-version
+
+# linting
+.pyre
+.idea
+.github
 dask-worker-space/
-*.ipynb
+*.ipynb_checkpoints

@@ -12,29 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import re
 from io import StringIO
 from math import ceil
-from os import stat
-from os.path import exists
-from sys import intern, modules
-from typing import Callable, Dict, List, Optional, Union, Tuple
+from pathlib import Path
+from sys import intern
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
+from .logging import gtfparse_logger as logger
 try:
     import modin.pandas as pd
 except ImportError:
     import pandas as pd
 
-from .logging import setup_logging
 from .parsing_error import ParsingError
 
 
 def parse_gtf(
-    filepath_or_buffer: Union[str, StringIO],
+    filepath_or_buffer: Union[str, StringIO, Path],
     chunksize: int = 1024 * 1024,
     features: Optional[Tuple[str]] = None,
 ) -> pd.DataFrame:
@@ -54,7 +52,6 @@ def parse_gtf(
 
     :class:~pd.DataFrame
     """
-    logger = logging.getLogger("gtfparse")
 
     if features:
         features = np.unique(features)
@@ -78,10 +75,21 @@ def parse_gtf(
     # 9) attribute : key-value pairs separated by semicolons
     # (see more complete description in docstring at top of file)
 
+    if isinstance(filepath_or_buffer, str):
+        filepath_or_buffer = Path(filepath_or_buffer)
+
+    if not filepath_or_buffer.exists():
+        logger.exception(f"{filepath_or_buffer.resolve()} cannot be found.")
+        raise FileNotFoundError
+
     def parse_frame(s: str) -> int:
         if s == ".":
-            s = 0
-        return int(s)
+            s_parsed = 0
+        elif s in ["0", "1", "2"]:
+            s_parsed = int(s)
+        else:
+            raise ValueError("Cannot parse annotation frame")
+        return s_parsed
 
     def fix_attribute_column(attribute: str) -> str:
         return attribute.replace(';"', '"').replace(";-", "-").replace("; ", ";")
@@ -107,8 +115,7 @@ def parse_gtf(
         dtype={"score": np.float32, "attribue": str, "strand": "category"},
         skipinitialspace=True,
         skip_blank_lines=True,
-        error_bad_lines=True,
-        warn_bad_lines=True,
+        on_bad_lines="warn",
         chunksize=chunksize,
         engine="c",
         na_values=".",
@@ -122,10 +129,13 @@ def parse_gtf(
         low_memory=False,
     )
 
-    if isinstance(filepath_or_buffer, str):
-        file_size = stat(filepath_or_buffer).st_size
-    elif isinstance(filepath_or_buffer, StringIO):
+    if isinstance(filepath_or_buffer, StringIO):
         file_size = len(filepath_or_buffer.getvalue())
+    elif isinstance(filepath_or_buffer, Path):
+        file_size = filepath_or_buffer.stat().st_size
+    else:
+        logger.exception("File is of unknown type.  Cannot determine its size.")
+        raise RuntimeError
 
     try:
         for df in tqdm(
@@ -175,9 +185,9 @@ def parse_gtf(
 def parse_gtf_and_expand_attributes(
     filepath_or_buffer: Union[str, StringIO],
     chunksize: int = 1024 * 1024,
-    restrict_attribute_columns: Union[List[str]] = None,
-    features: Tuple[str] = None,
-):
+    restrict_attribute_columns: Optional[List[str]] = None,
+    features: Optional[Tuple[str]] = None,
+) -> pd.DataFrame:
     """
     Parse lines into column->values dictionary and then expand
     the 'attribute' column into multiple columns. This expansion happens
@@ -197,8 +207,6 @@ def parse_gtf_and_expand_attributes(
     features : set or None
         Ignore entries which don't correspond to one of the supplied features
     """
-    logger = logging.getLogger("gtfparse")
-
     df = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
 
     logger.info("Expanding attributes")
@@ -250,7 +258,7 @@ def parse_gtf_and_expand_attributes(
             df["attribute"].apply(attribute_to_dict).to_json(orient="records")
         ).replace(to_replace=np.nan, value="")
 
-    if restrict_attribute_columns:
+    if restrict_attribute_columns is not None:
         logger.info("Combining 'attribute' values not selected for expansion")
         fold_columns = attribute_values.columns[
             ~attribute_values.columns.isin(restrict_attribute_columns)
@@ -278,14 +286,14 @@ def parse_gtf_and_expand_attributes(
 
 
 def read_gtf(
-    filepath_or_buffer: Union[str, StringIO],
+    filepath_or_buffer: Union[str, StringIO, Path],
     expand_attribute_column: bool = True,
     infer_biotype_column: bool = False,
     column_converters: Optional[Dict[str, Callable[..., str]]] = None,
     usecols: Optional[List[str]] = None,
-    features: Tuple[str] = None,
+    features: Optional[Tuple[str]] = None,
     chunksize: int = 1024 * 1024,
-):
+) -> pd.DataFrame:
     """
     Parse a GTF into a dictionary mapping column names to sequences of values.
 
@@ -319,13 +327,12 @@ def read_gtf(
 
     chunksize : int
     """
-    setup_logging(name="gtfparse")
+    if isinstance(filepath_or_buffer, str):
+        filepath_or_buffer = Path(filepath_or_buffer)
 
-    logger = logging.getLogger("gtfparse")
-
-    if isinstance(filepath_or_buffer, str) and not exists(filepath_or_buffer):
+    if isinstance(filepath_or_buffer, Path) and not filepath_or_buffer.exists():
         logger.exception(f"GTF file does not exist: {filepath_or_buffer}")
-        raise ValueError
+        raise FileNotFoundError
 
     if expand_attribute_column:
         result_df = parse_gtf_and_expand_attributes(
