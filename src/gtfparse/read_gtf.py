@@ -20,10 +20,14 @@ from sys import intern
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
 
 from .logging import gtfparse_logger as logger
+try:
+    import modin.pandas as pd
+except ImportError:
+    import pandas as pd
+
 from .parsing_error import ParsingError
 
 
@@ -42,7 +46,7 @@ def parse_gtf(
 
     features : set or None
         Drop entries which aren't one of these features
-
+    
     Returns
     -------
 

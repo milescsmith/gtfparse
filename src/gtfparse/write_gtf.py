@@ -1,9 +1,9 @@
-import logging
-
-import pandas as pd
-from tqdm import tqdm
-
 from .logging import gtfparse_logger as logger
+try:
+    import modin.pandas as pd
+except ImportError:
+    import pandas as pd
+
 from .required_columns import REQUIRED_COLUMNS
 
 

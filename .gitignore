@@ -72,3 +72,5 @@ target/
 .pyre
 .idea
 .github
+dask-worker-space/
+*.ipynb_checkpoints
