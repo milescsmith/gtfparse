@@ -1,97 +1,48 @@
-import unittest
-from os.path import exists
+from importlib.resources import as_file, files
 
-from pkg_resources import resource_filename
+import pandas as pd
+import pytest
 
-from gtfparse import read_gtf
+from gtfparse.read_gtf import read_gtf
 
-
-class TestRefseqGTF(unittest.TestCase):
-    def setUp(self):
-        self.b16_gtf_path = resource_filename("tests", "data/B16.stringtie.head.gtf")
-        self.assertTrue(
-            exists(self.b16_gtf_path), msg="Cannot find 'B16.stringtie.head.gtf'"
-        )
-
-    def _check_required_columns(self, gtf_df):
-        self.assertIn(
-            "feature",
-            gtf_df.columns,
-            "Expected column named 'feature' in StringTie GTF",
-        )
-        self.assertIn(
-            "cov", gtf_df.columns, "Expected column named 'cov' in StringTie GTF"
-        )
-        self.assertIn(
-            "FPKM", gtf_df.columns, "Expected column named 'FPKM' in StringTie GTF"
-        )
-        features = gtf_df["feature"].unique()
-        self.assertIn("exon", features, f"No exons in GTF (available: {features})")
-        self.assertIn(
-            "transcript", features, f"No transcripts in GTF (available: {features})"
-        )
-
-    def _check_string_cov_and_FPKM(self, gtf_df):
-        for i, feature_name in enumerate(gtf_df["feature"]):
-            cov = gtf_df["cov"][i]
-            fpkm = gtf_df["FPKM"][i]
-            if feature_name == "exon":
-                self.assertGreaterEqual(
-                    float(cov), 0, msg=f"Expected non-negative cov for exon, got {cov}"
-                )
-            elif feature_name == "transcript":
-                self.assertGreaterEqual(
-                    float(cov),
-                    0,
-                    msg=f"Expected non-negative cov for transcript, got {cov}",
-                )
-                self.assertGreaterEqual(
-                    float(fpkm),
-                    0,
-                    msg=f"Expected non-negative FPKM for transcript, got {fpkm}",
-                )
-
-    def _check_float_cov_and_FPKM(self, gtf_df):
-        for i, feature_name in enumerate(gtf_df["feature"]):
-            cov = gtf_df["cov"][i]
-            fpkm = gtf_df["FPKM"][i]
-            self.assertIsInstance(
-                cov, float, msg=f"Expected cov to be float but got {cov} : {type(cov)}"
-            )
-
-            if feature_name == "exon":
-                self.assertGreaterEqual(
-                    cov, 0, msg=f"Expected non-negative cov for exon, got {cov}"
-                )
-            elif feature_name == "transcript":
-                self.assertIsInstance(
-                    fpkm,
-                    float,
-                    f"Expected FPKM to be float but got {fpkm} : {type(fpkm)}",
-                )
-                self.assertGreaterEqual(
-                    cov, 0, msg=f"Expected non-negative cov for transcript, got {cov}"
-                )
-                self.assertGreaterEqual(
-                    fpkm,
-                    0,
-                    msg=f"Expected non-negative FPKM for transcript, got {fpkm}",
-                )
-
-    def test_read_stringtie_gtf_as_dataframe(self):
-        gtf_df = read_gtf(self.b16_gtf_path, expand_attribute_column=True)
-        self._check_required_columns(gtf_df)
-        self._check_string_cov_and_FPKM(gtf_df)
-
-    def test_read_stringtie_gtf_as_dataframe_float_values(self):
-        gtf_df = read_gtf(
-            self.b16_gtf_path,
-            expand_attribute_column=True,
-            column_converters={"cov": float, "FPKM": float},
-        )
-        self._check_required_columns(gtf_df)
-        self._check_float_cov_and_FPKM(gtf_df)
+# ruff: noqa: S101
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.fixture
+def b16_string_gtf():
+    with as_file(files("tests.data").joinpath("B16.stringtie.head.gtf")) as gtf:
+        return read_gtf(gtf, expand_attribute_column=True)
+
+
+def check_b16_required_columns(b16_string_gtf):
+    assert pd.Series(["feature", "cov", "FPKM"]).isin(b16_string_gtf.columns).all()
+
+
+def check_b16_features(b16_string_gtf):
+    assert pd.Series(["exon", "transcript"]).isin(b16_string_gtf["feature"]).all()
+
+
+def check_string_cov_and_FPKM(b16_string_gtf):  # noqa: N802
+    for i in b16_string_gtf.itertuples():
+        if i.feature == "exon":
+            assert float(i.cov) >= 0
+        elif i.feature == "transcript":
+            assert float(i.cov) >= 0
+            assert float(i.FPKM) >= 0
+
+
+@pytest.fixture
+def b16_float_gtf():
+    with as_file(files("tests.data").joinpath("B16.stringtie.head.gtf")) as gtf:
+        return read_gtf(gtf, expand_attribute_column=True, column_converters={"cov": float, "FPKM": float})
+
+
+def check_float_cov_and_FPKM(b16_float_gtf):  # noqa: N802
+    for i in b16_float_gtf.itertuples():
+        assert isinstance(i.cov, float)
+        if i.feature == "exon":
+            assert i.cov >= 0
+        elif i.feature == "transcript":
+            assert isinstance(i.FPKM, float)
+            assert i.cov >= 0
+            assert i.FPKM >= 0

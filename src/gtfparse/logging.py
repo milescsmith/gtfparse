@@ -1,54 +1,29 @@
-import logging
-from typing import Optional
+import datetime
+from pathlib import Path
+from sys import stdout
+from typing import TextIO
 
-import coloredlogs
+from loguru import logger
 
 
-def setup_logging(name: Optional[str] = None, level="DEBUG") -> logging.Logger:
-    coloredlogs.DEFAULT_FIELD_STYLES = {
-        "asctime": {"color": "green"},
-        "levelname": {"bold": True, "color": "red"},
-        "module": {"color": 73},
-        "funcName": {"color": 74},
-        "lineno": {"bold": True, "color": "green"},
-        "message": {"color": "yellow"},
-    }
+def init_logger(verbose: int = 0, msg_format: str | None = None, save: bool = True) -> None:
+    if msg_format is None:
+        msg_format = "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan>·-·<level>{message}</level>"
 
-    if name is None:
-        name = __name__
-    logger = logging.getLogger(name)
-    logger.propagate = True
+    timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 
-    if level == "DEBUG":
-        logger_level = logging.DEBUG
-    elif level == "INFO":
-        logger_level = logging.INFO
-    elif level == "WARNING":
-        logger_level = logging.WARNING
-    elif level == "ERROR":
-        logger_level = logging.ERROR
-    elif level == "CRITICAL":
-        logger_level = logging.CRITICAL
+    match verbose:
+        case 3:
+            log_level = "DEBUG"
+        case 2:
+            log_level = "INFO"
+        case 1:
+            log_level = "WARNING"
+        case _:
+            log_level = "ERROR"
 
-    logger.setLevel(logger_level)
-    coloredlogs.install(
-        level=level,
-        fmt="[%(funcName)s(%(lineno)d)]: %(message)s",
-        logger=logger,
+    output_sink: Path | TextIO = (
+        Path(f"gtfparse_{datetime.datetime.now(tz=timezone).strftime('%d-%m-%Y--%H-%M-%S')}.log") if save else stdout
     )
 
-    if name:
-        fh = logging.FileHandler(f"{name}.log")
-    else:
-        fh = logging.FileHandler(f"{__name__}")
-    formatter = logging.Formatter(
-        "[%(asctime)s] {%(module)s:%(funcName)s():%(lineno)d} %(levelname)s - %(message)s"
-    )
-    fh.setLevel(logger_level)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-
-    return logger
-
-
-gtfparse_logger = setup_logging("gtfparse")
+    logger.add(sink=output_sink, format=msg_format, level=log_level, backtrace=True, diagnose=True)

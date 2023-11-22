@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gtfparse"
-version = "1.6.0"
+version = "2.0.0"
 description = "Parsing of General Transfer Format(GTF)/General Feature Format 3 (GFF3) genetic annotation files"
 authors = ["Alex Rubinsteyn <alex.rubinsteyn@gmail.com>", "Miles Smith <miles-smith@omrf.org>"]
 maintainers = ["Miles Smith <miles-smith@omrf.org>"]
@@ -14,39 +14,143 @@ classifiers=[
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.10",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
     ]
-include = ["gtfparse/tests/data/*.*"]
+packages = [
+    { include = "gtfparse", from = "src" },
+    { include = "tests", format = "sdist" },
+]
+# include = ["gtfparse/tests/data/*.*"]
 homepage = "https://github.com/milescsmith/gtfparse"
 repository = "https://github.com/milescsmith/gtfparse"
 readme = "README.rst"
 keywords = ["annotation", "gtf", "gff3", "bioinformatics"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-pandas = "^1.4.1"
-tqdm = "^4.63.0"
-swifter = { version = "^1.1.2", optional = true }
-dask = { version = "^2022.03.0", optional = true}
-modin = {version = "^0.13.3", optional = true }
-coloredlogs = "^15.0.1"
-numpy = "^1.22.3"
+python = "^3.10"
+pandas = "^2.1"
+tqdm = "^4.66"
+swifter = { version = "^1.4", optional = true }
+dask = { version = "^2023.11.0 ", optional = true}
+modin = {version = "^0.25", optional = true }
+numpy = "^1.26"
+loguru = "^0.7.2"
 
 [tool.poetry.extras]
 parallel = ["swifter", "dask"]
 modin = ["modin"]
 
-[tool.poetry.dev-dependencies]
-black = "^22.1.0"
-flake8 = "^4.0.1"
-pyre-check = "^0.9.10"
-isort = "^5.10.1"
-mypy = "^0.941"
-ipython = "^8.1.1"
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+mypy = "^1.7"
+pytest = "^7.4.3"
+nox = "^2023.4.22"
+ruff = "^0.1.6"
+nox-poetry = "^1.0.3"
 
 [build-system]
 requires = ["poetry_core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+known_typing = "typing,types,typing_extensions,mypy,mypy_extensions"
+sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+include_trailing_comma = true
+default_section = "FIRSTPARTY"
+multi_line_output = 3
+indent = 4
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 80
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+skip-string-normalization = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+select = [
+    "A",
+    "ARG",
+    "B",
+    "C",
+    "DTZ",
+    "E",
+    "EM",
+    "F",
+    "FBT",
+    "I",
+    "I001",
+    "ICN",
+    "ISC",
+    "N",
+    "PLC",
+    "PLE",
+    "PLR",
+    "PLW",
+    "Q",
+    "RUF",
+    "S",
+    "T",
+    "TID",
+    "UP",
+    "W",
+    "YTT",
+]
+ignore = [
+    "B027",
+    "FBT001",
+    "FBT002",
+    "FBT003",
+    "S105",
+    "S106",
+    "S107",
+    "C901",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+]
+unfixable = [
+    "F401",
+    "UP007",
+]
+exclude = [
+    ".git",
+    ".hg",
+    "__pycache__",
+    "_bin/*",
+    "_build/*",
+    "_ig_fbcode_wheel/*",
+    "buck-out/*",
+    "third-party-buck/*",
+    "third-party2/*",
+    "dist",
+    ".venv",
+    ".nox",
+    ".mypy_cache",
+    ".pytype",
+    ".svn",
+    "__pypackages__",
+]
+src = ["src"]
+
+[tool.ruff.mccabe]
+max-complexity = 50
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+follow_imports = false
+follow_imports_for_stubs = false
+warn_unreachable = true
+pretty = true
+ignore_missing_imports = false

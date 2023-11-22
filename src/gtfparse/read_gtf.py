@@ -13,28 +13,31 @@
 # limitations under the License.
 
 import re
+from collections.abc import Callable
+from importlib.util import find_spec
 from io import StringIO
 from math import ceil
 from pathlib import Path
 from sys import intern
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import TextIO
 
 import numpy as np
+from loguru import logger
 from tqdm.auto import tqdm
 
-from .logging import gtfparse_logger as logger
-try:
+if find_spec("modin"):
     import modin.pandas as pd
-except ImportError:
+else:
     import pandas as pd
 
-from .parsing_error import ParsingError
+from gtfparse.parsing_error import ParsingError
 
 
+# @logger.catch
 def parse_gtf(
-    filepath_or_buffer: Union[str, StringIO, Path],
+    filepath_or_buffer: str | TextIO | Path,
     chunksize: int = 1024 * 1024,
-    features: Optional[Tuple[str]] = None,
+    features: tuple[str] | None = None,
 ) -> pd.DataFrame:
     """
     Parameters
@@ -46,7 +49,7 @@ def parse_gtf(
 
     features : set or None
         Drop entries which aren't one of these features
-    
+
     Returns
     -------
 
@@ -78,24 +81,13 @@ def parse_gtf(
     if isinstance(filepath_or_buffer, str):
         filepath_or_buffer = Path(filepath_or_buffer)
 
-    if not filepath_or_buffer.exists():
+    if isinstance(filepath_or_buffer, Path) and not filepath_or_buffer.exists():
         logger.exception(f"{filepath_or_buffer.resolve()} cannot be found.")
         raise FileNotFoundError
 
-    def parse_frame(s: str) -> int:
-        if s == ".":
-            s_parsed = 0
-        elif s in ["0", "1", "2"]:
-            s_parsed = int(s)
-        else:
-            raise ValueError("Cannot parse annotation frame")
-        return s_parsed
-
-    def fix_attribute_column(attribute: str) -> str:
-        return attribute.replace(';"', '"').replace(";-", "-").replace("; ", ";")
-
     # tqdm.pandas(tqdm, leave=True)
     logger.info("Reading in data in chunks")
+    mmap = not isinstance(filepath_or_buffer, StringIO)
 
     chunk_iterator = pd.read_csv(
         filepath_or_buffer,
@@ -112,7 +104,6 @@ def parse_gtf(
             "frame",
             "attribute",
         ],
-        dtype={"score": np.float32, "attribue": str, "strand": "category"},
         skipinitialspace=True,
         skip_blank_lines=True,
         on_bad_lines="warn",
@@ -124,8 +115,10 @@ def parse_gtf(
             "seqname": intern,
             "source": intern,
             "feature": intern,
+            "score": intern,
         },
-        memory_map=True,
+        dtype={"start": np.int64, "end": np.int64, "exon_number": np.int64, "strand": "category"},
+        memory_map=mmap,
         low_memory=False,
     )
 
@@ -133,9 +126,6 @@ def parse_gtf(
         file_size = len(filepath_or_buffer.getvalue())
     elif isinstance(filepath_or_buffer, Path):
         file_size = filepath_or_buffer.stat().st_size
-    else:
-        logger.exception("File is of unknown type.  Cannot determine its size.")
-        raise RuntimeError
 
     try:
         for df in tqdm(
@@ -147,46 +137,56 @@ def parse_gtf(
         ):
             dataframes.append(df)
     except Exception as e:
-        raise ParsingError(str(e))
+        msg = f"There was an error in parsing the gtf: {e}"
+        raise ParsingError(msg) from e
 
     df = pd.concat(dataframes)
     if features:
         logger.info(f"Filtering for entries that have a feature in {features}")
         df = df[df["feature"].isin(features)]
 
-    try:
-        import swifter
+    if find_spec("swifter"):
+        import swifter  # noqa: F401
 
         logger.info("swifter found, processing in parallel")
         logger.info("Repairing non-standard 'attributes'")
-        df["attribute"] = (
-            df["attribute"].swifter.progress_bar(True).apply(fix_attribute_column)
-        )
+        df["attribute"] = df["attribute"].swifter.progress_bar(True).apply(fix_attribute_column)
 
         logger.info("Converting non-integer 'start' values to 0")
-        df["start"] = (
-            df["start"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int32)
-        )
+        df["start"] = df["start"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int64)
         logger.info("Converting non-integer 'end' values to 0")
-        df["end"] = (
-            df["end"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int32)
-        )
-    except ImportError:
+        df["end"] = df["end"].swifter.progress_bar(True).apply(np.nan_to_num).astype(np.int64)
+    else:
         logger.info("Repairing non-standard 'attributes'")
         df["attribute"] = df["attribute"].apply(fix_attribute_column)
         logger.info("Converting non-integer 'start' values to 0")
-        df["start"] = df["start"].apply(np.nan_to_num).astype(np.int32)
+        df["start"] = df["start"].apply(np.nan_to_num).astype(np.int64)
         logger.info("Converting non-integer 'end' values to 0")
-        df["end"] = df["end"].apply(np.nan_to_num).astype(np.int32)
+        df["end"] = df["end"].apply(np.nan_to_num).astype(np.int64)
 
     return df
 
 
+def parse_frame(s: str) -> int:
+    if s == ".":
+        s_parsed = 0
+    elif s in {"0", "1", "2"}:
+        s_parsed = int(s)
+    else:
+        msg = "Cannot parse annotation frame"
+        raise ValueError(msg)
+    return s_parsed
+
+
+def fix_attribute_column(attribute: str) -> str:
+    return attribute.replace(';"', '"').replace(";-", "-").replace("; ", ";")
+
+
 def parse_gtf_and_expand_attributes(
-    filepath_or_buffer: Union[str, StringIO],
+    filepath_or_buffer: str | TextIO | Path,
     chunksize: int = 1024 * 1024,
-    restrict_attribute_columns: Optional[List[str]] = None,
-    features: Optional[Tuple[str]] = None,
+    restrict_attribute_columns: list[str] | None = None,
+    features: tuple[str] | None = None,
 ) -> pd.DataFrame:
     """
     Parse lines into column->values dictionary and then expand
@@ -211,7 +211,7 @@ def parse_gtf_and_expand_attributes(
 
     logger.info("Expanding attributes")
 
-    def attribute_to_dict(attributes: str) -> Dict[str, str]:
+    def attribute_to_dict(attributes: str) -> dict[str, str]:
         attributes = attributes.rstrip(";")
 
         # this would be simple if attribute keys weren't ever duplicated
@@ -222,47 +222,34 @@ def parse_gtf_and_expand_attributes(
         #     if len(re.split("\s|=", _)) == 2
         # )
 
-        attr_dict: Dict[str, str] = {}
+        attr_dict: dict[str, str] = {}
         keys = [
-            re.split(r"\s+|=+|,+", _)[0]
-            for _ in re.split(r";\s*", attributes)
-            if len(re.split(r"\s|=", _)) == 2
+            re.split(r"\s+|=+|,+", _)[0] for _ in re.split(r";\s*", attributes) if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
         ]
         values = [
-            re.split(r"\s+|=+|,+", _)[1]
-            for _ in re.split(r";\s*", attributes)
-            if len(re.split(r"\s|=", _)) == 2
+            re.split(r"\s+|=+|,+", _)[1] for _ in re.split(r";\s*", attributes) if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
         ]
-        for i, j in zip(keys, values):
-            j = j.strip('"')
-            if i in attr_dict:
-                attr_dict[i] = ",".join([attr_dict[i], j])
-            else:
-                attr_dict[i] = j
-
+        for i, j in zip(keys, values, strict=True):
+            _j = j.strip('"')
+            attr_dict[i] = ",".join([attr_dict[i], _j]) if i in attr_dict else _j
         return attr_dict
 
-    try:
-        import swifter
+    if find_spec("swifter"):
+        import swifter  # noqa: F401
 
         logger.info("Converting 'attribute' column to dictionaries, then to json")
         attribute_values = pd.read_json(
-            df["attribute"]
-            .swifter.progress_bar(True)
-            .apply(attribute_to_dict)
-            .to_json(orient="records")
+            StringIO(df["attribute"].swifter.progress_bar(True).apply(attribute_to_dict).to_json(orient="records"))
         ).replace(to_replace=np.nan, value="")
-    except ImportError:
+    else:
         logger.info("Converting 'attribute' column to dictionaries, then to json")
         attribute_values = pd.read_json(
-            df["attribute"].apply(attribute_to_dict).to_json(orient="records")
+            StringIO(df["attribute"].apply(attribute_to_dict).to_json(orient="records"))
         ).replace(to_replace=np.nan, value="")
 
     if restrict_attribute_columns is not None:
         logger.info("Combining 'attribute' values not selected for expansion")
-        fold_columns = attribute_values.columns[
-            ~attribute_values.columns.isin(restrict_attribute_columns)
-        ]
+        fold_columns = attribute_values.columns[~attribute_values.columns.isin(restrict_attribute_columns)]
         attribute_column = attribute_values[fold_columns].apply(
             lambda x: ";".join(f"{k}={v}" for k, v in x.items() if not pd.isnull(v)),
             axis=1,
@@ -278,20 +265,18 @@ def parse_gtf_and_expand_attributes(
         )
     else:
         logger.info("Concatenating columns")
-        expanded_df = pd.concat(
-            [df.loc[:, df.columns.drop("attribute")], attribute_values], axis=1
-        )
+        expanded_df = pd.concat([df.loc[:, df.columns.drop("attribute")], attribute_values], axis=1)
 
     return expanded_df
 
 
 def read_gtf(
-    filepath_or_buffer: Union[str, StringIO, Path],
+    filepath_or_buffer: str | TextIO | Path,
     expand_attribute_column: bool = True,
     infer_biotype_column: bool = False,
-    column_converters: Optional[Dict[str, Callable[..., str]]] = None,
-    usecols: Optional[List[str]] = None,
-    features: Optional[Tuple[str]] = None,
+    column_converters: dict[str, Callable[..., str]] | None = None,
+    usecols: list[str] | None = None,
+    features: tuple[str] | None = None,
     chunksize: int = 1024 * 1024,
 ) -> pd.DataFrame:
     """
@@ -339,15 +324,11 @@ def read_gtf(
             filepath_or_buffer, chunksize=chunksize, restrict_attribute_columns=usecols
         )
     else:
-        result_df = parse_gtf(
-            filepath_or_buffer, chunksize=chunksize, features=features
-        )
+        result_df = parse_gtf(filepath_or_buffer, chunksize=chunksize, features=features)
 
     if column_converters:
         for column_name in column_converters:
-            result_df[column_name] = result_df[column_name].astype(
-                column_converters[column_name], errors="ignore"
-            )
+            result_df[column_name] = result_df[column_name].astype(column_converters[column_name], errors="ignore")
 
     # Hackishly infer whether the values in the 'source' column of this GTF
     # are actually representing a biotype by checking for the most common
@@ -364,9 +345,7 @@ def read_gtf(
                 logger.info("Using column 'source' to replace missing 'gene_biotype'")
                 result_df["gene_biotype"] = result_df["source"]
             if "transcript_biotype" not in column_names:
-                logger.info(
-                    "Using column 'source' to replace missing 'transcript_biotype'"
-                )
+                logger.info("Using column 'source' to replace missing 'transcript_biotype'")
                 result_df["transcript_biotype"] = result_df["source"]
 
     if usecols is not None:

@@ -11,22 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from loguru import logger
 
-from .create_missing_features import create_missing_features
-from .parsing_error import ParsingError
-from .read_gtf import parse_gtf, parse_gtf_and_expand_attributes, read_gtf
-from .required_columns import REQUIRED_COLUMNS
-from .write_gtf import df_to_gtf
-from .logging import setup_logging
+# from gtfparse.logging import init_logger
 
-
-gtfparse_logger = setup_logging(__name__)
-
+logger.disable(__name__)
 
 __all__ = [
     "create_missing_features",
     "parse_gtf",
     "parse_gtf_and_expand_attributes",
+    "parse_frame",
     "REQUIRED_COLUMNS",
     "ParsingError",
     "parse_gtf",

@@ -1,14 +1,15 @@
-import logging
-from sys import modules
-from tqdm import tqdm
-from .logging import setup_logging
 
-try:
+from importlib.util import find_spec
+
+from loguru import logger
+from tqdm import tqdm
+
+if find_spec("modin"):
     import modin.pandas as pd
-except ImportError:
+else:
     import pandas as pd
 
-from .required_columns import REQUIRED_COLUMNS
+from gtfparse.required_columns import REQUIRED_COLUMNS
 
 
 def extract_seq_info(gtf_row: pd.Series) -> str:
@@ -29,12 +30,13 @@ def extract_seq_info(gtf_row: pd.Series) -> str:
                 for _ in zip(
                     gtf_row.drop(REQUIRED_COLUMNS[:-1]).keys().values,
                     list(gtf_row.drop(REQUIRED_COLUMNS[:-1]).astype("str")),
+                    strict=True,
                 )
             ]
         )
         line_to_strings = f"{required}\t{attributes}\n"
-    except Exception:
-        raise ValueError(gtf_row)
+    except Exception as e:
+        raise ValueError(gtf_row) from e
     return line_to_strings
 
 
@@ -51,13 +53,14 @@ def df_to_gtf(df: pd.DataFrame, filename: str) -> None:
         name of file to write GTF out as
     """
 
-    try:
-        import swifter
+    if find_spec("swifter"):
+        import swifter  # noqa: F401
 
         logger.info("swifter found, processing in parallel")
         line_to_strings = df.swifter.progress_bar(True).apply(extract_seq_info, axis=1)
-    except ImportError:
-        line_to_strings = df.apply(extract_seq_info, axis=1)
+    else:
+        tqdm.pandas()
+        line_to_strings = df.progress_apply(extract_seq_info, axis=1)
 
     with open(filename, "w") as gtfoutput:
         # gtfoutput.writelines("seqname\tsource\tfeature\tstart\tend\tscore\tstrand\tframe\tattributes\n")

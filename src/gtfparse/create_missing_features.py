@@ -13,20 +13,22 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Set
-from .logging import gtfparse_logger as logger
+from importlib.util import find_spec
+from typing import Any
 
-try:
+from loguru import logger
+
+if find_spec("modin"):
     import modin.pandas as pd
-except ImportError:
+else:
     import pandas as pd
 
 
 def create_missing_features(
     dataframe: pd.DataFrame,
-    unique_keys: Optional[Dict[str, str]] = None,
-    extra_columns: Optional[Dict[str, Set[str]]] = None,
-    missing_value: Optional[Any] = None,
+    unique_keys: dict[str, str] | None = None,
+    extra_columns: dict[str, set[str]] | None = None,
+    missing_value: Any | None = None,
 ) -> pd.DataFrame:
     """
     Helper function used to construct a missing feature such as 'transcript'
@@ -56,7 +58,7 @@ def create_missing_features(
     Returns original dataframe along with all extra rows created for missing
     features.
     """
-    extra_dataframes = list()
+    extra_dataframes = []
     if missing_value is None:
         missing_value = ""
 
@@ -64,7 +66,7 @@ def create_missing_features(
     existing_columns = dataframe.columns.unique()
 
     if unique_keys is not None:
-        for (feature_name, groupby_key) in unique_keys.items():
+        for feature_name, groupby_key in unique_keys.items():
             if feature_name in existing_features:
                 logger.info(f"Feature '{feature_name}' already exists in GTF data")
                 continue
@@ -79,10 +81,7 @@ def create_missing_features(
             # assuming the values for every column are missing and fill them in
             # where possible.
             feature_values = OrderedDict(
-                [
-                    (column_name, [missing_value] * row_groups.ngroups)
-                    for column_name in dataframe.columns
-                ]
+                [(column_name, [missing_value] * row_groups.ngroups) for column_name in dataframe.columns]
             )
 
             # User specifies which non-required columns should we try to infer
@@ -113,10 +112,8 @@ def create_missing_features(
                 if extra_columns is not None:
                     for column_name in feature_columns:
                         if column_name not in existing_columns:
-                            raise ValueError(
-                                "Column '%s' does not exist in GTF, columns = %s"
-                                % (column_name, existing_columns)
-                            )
+                            msg = f"Column '{column_name}' does not exist in GTF, columns = {existing_columns}"
+                            raise ValueError(msg)
 
                         # expect that all entries related to a reconstructed feature
                         # are related and are thus within the same interval of
@@ -125,4 +122,4 @@ def create_missing_features(
                         if len(unique_values) == 1:
                             feature_values[column_name][i] = unique_values[0]
             extra_dataframes.append(pd.DataFrame(feature_values))
-    return pd.concat([dataframe] + extra_dataframes, ignore_index=True)
+    return pd.concat([dataframe, *extra_dataframes], ignore_index=True)

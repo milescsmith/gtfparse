@@ -1,46 +1,40 @@
-import unittest
-from os.path import exists
+from importlib.resources import as_file, files
 
-from pkg_resources import resource_filename
+import pandas as pd
+import pytest
 
-from gtfparse import read_gtf
+from gtfparse.read_gtf import read_gtf
+
+# ruff: noqa: S101
+
+@pytest.fixture
+def refseq():
+    with as_file(files("tests.data").joinpath("refseq.ucsc.small.gtf")) as gtf:
+        return read_gtf(gtf, expand_attribute_column=True)
 
 
-class TestRefseqGTF(unittest.TestCase):
-    def setUp(self):
-        self.refseq = resource_filename("tests", "data/refseq.ucsc.small.gtf")
-        self.assertTrue(exists(self.refseq), msg="Cannot find 'refseq.ucsc.small.gtf'")
-
-    def test_refseq_gtf(self):
-        refseq = read_gtf(self.refseq, expand_attribute_column=True)
-
-        self.assertIn(
-            "feature",
-            refseq.columns,
-            msg="Expected column named 'feature' not found in RefSeq GTF",
+def test_refseq_columns(refseq):
+    assert (
+        pd.Series(
+            [
+                "feature",
+                "gene_id",
+                "transcript_id",
+            ]
         )
-        self.assertIn(
-            "gene_id",
-            refseq.columns,
-            msg="Expected column named 'gene_id' not found in RefSeq GTF",
-        )
-        self.assertIn(
-            "transcript_id",
-            refseq.columns,
-            msg="Expected column named 'transcript_id' not found in RefSeq GTF",
-        )
-
-        self.assertIn(
-            "exon",
-            refseq["feature"].unique(),
-            msg=f"No exon features in GTF (available: {refseq['feature'].unique()})",
-        )
-        self.assertIn(
-            "CDS",
-            refseq["feature"].unique(),
-            msg=f"No CDS features in GTF (available: {refseq['feature'].unique()})",
-        )
+        .isin(refseq.columns)
+        .all()
+    )
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_refseq_features(refseq):
+    assert (
+        pd.Series(
+            [
+                "exon",
+                "CDS",
+            ]
+        )
+        .isin(refseq["feature"])
+        .all
+    )

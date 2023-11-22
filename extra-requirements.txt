@@ -1,7 +1,0 @@
-# FORMAT
-# Put your extra requirements here in the following format
-#
-# package[version_required]: tag1, tag2, ...
-
-swifter~=0.3:   swifter, parallel
-modin~=0.8:     modin, parallel

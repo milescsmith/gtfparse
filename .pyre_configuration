@@ -1,9 +1,0 @@
-{
-  "source_directories": [
-    {
-      "import_root": ".",
-      "source": "src/gtfparse"
-    }
-  ],
-  "strict": true
-}

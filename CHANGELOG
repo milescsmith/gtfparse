@@ -1,0 +1,17 @@
+# [2.0.0] [2023-11-21]:
+
+## Changed:
+- Minimum Python to 3.10
+- Replaced unittest with pytest
+- Replaced tox with nox
+- Replaced flake8, isort, pylint, pyre-check with ruff
+- Replaced relative dependencies
+- Update dependencies
+- Move all config files into pyproject.toml
+- Replace coloredlogs with loguru
+- Updated typing
+
+## Added:
+- Added .gitignore
+
+[2.0.0]: https://github.com/milescsmith/gtfparse/releases/tag/2.0.0
