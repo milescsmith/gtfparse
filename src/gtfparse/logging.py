@@ -22,8 +22,8 @@ def init_logger(verbose: int = 0, msg_format: str | None = None, save: bool = Tr
         case _:
             log_level = "ERROR"
 
-    output_sink: Path | TextIO = (
-        Path(f"gtfparse_{datetime.datetime.now(tz=timezone).strftime('%d-%m-%Y--%H-%M-%S')}.log") if save else stdout
+    output_sink: TextIO = (
+        Path(f"gtfparse_{datetime.datetime.now(tz=timezone).strftime('%d-%m-%Y--%H-%M-%S')}.log").open("w") if save else stdout
     )
 
     logger.add(sink=output_sink, format=msg_format, level=log_level, backtrace=True, diagnose=True)

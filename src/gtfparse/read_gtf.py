@@ -37,7 +37,7 @@ from gtfparse.parsing_error import ParsingError
 def parse_gtf(
     filepath_or_buffer: str | TextIO | Path,
     chunksize: int = 1024 * 1024,
-    features: tuple[str] | None = None,
+    features: set[str] | None = None,
 ) -> pd.DataFrame:
     """
     Parameters
@@ -55,9 +55,6 @@ def parse_gtf(
 
     :class:~pd.DataFrame
     """
-
-    if features:
-        features = np.unique(features)
 
     dataframes = []
 
@@ -186,7 +183,7 @@ def parse_gtf_and_expand_attributes(
     filepath_or_buffer: str | TextIO | Path,
     chunksize: int = 1024 * 1024,
     restrict_attribute_columns: list[str] | None = None,
-    features: tuple[str] | None = None,
+    features: set[str] | None = None,
 ) -> pd.DataFrame:
     """
     Parse lines into column->values dictionary and then expand
@@ -276,7 +273,7 @@ def read_gtf(
     infer_biotype_column: bool = False,
     column_converters: dict[str, Callable[..., str]] | None = None,
     usecols: list[str] | None = None,
-    features: tuple[str] | None = None,
+    features: set[str] | None = None,
     chunksize: int = 1024 * 1024,
 ) -> pd.DataFrame:
     """
