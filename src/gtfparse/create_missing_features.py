@@ -13,15 +13,10 @@
 # limitations under the License.
 
 from collections import OrderedDict
-from importlib.util import find_spec
 from typing import Any
 
+import pandas as pd
 from loguru import logger
-
-if find_spec("modin"):
-    import modin.pandas as pd
-else:
-    import pandas as pd
 
 
 def create_missing_features(

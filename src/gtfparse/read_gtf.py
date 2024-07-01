@@ -22,13 +22,9 @@ from sys import intern
 from typing import TextIO
 
 import numpy as np
+import pandas as pd
 from loguru import logger
 from tqdm.auto import tqdm
-
-if find_spec("modin"):
-    import modin.pandas as pd
-else:
-    import pandas as pd
 
 from gtfparse.parsing_error import ParsingError
 
@@ -221,10 +217,14 @@ def parse_gtf_and_expand_attributes(
 
         attr_dict: dict[str, str] = {}
         keys = [
-            re.split(r"\s+|=+|,+", _)[0] for _ in re.split(r";\s*", attributes) if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
+            re.split(r"\s+|=+|,+", _)[0]
+            for _ in re.split(r";\s*", attributes)
+            if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
         ]
         values = [
-            re.split(r"\s+|=+|,+", _)[1] for _ in re.split(r";\s*", attributes) if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
+            re.split(r"\s+|=+|,+", _)[1]
+            for _ in re.split(r";\s*", attributes)
+            if len(re.split(r"\s|=", _)) == 2  # noqa: PLR2004
         ]
         for i, j in zip(keys, values, strict=True):
             _j = j.strip('"')

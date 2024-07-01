@@ -1,13 +1,8 @@
-
 from importlib.util import find_spec
 
+import pandas as pd
 from loguru import logger
 from tqdm import tqdm
-
-if find_spec("modin"):
-    import modin.pandas as pd
-else:
-    import pandas as pd
 
 from gtfparse.required_columns import REQUIRED_COLUMNS
 

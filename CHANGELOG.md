@@ -1,3 +1,12 @@
+# [2.2.0] [2024-07-01]
+
+## Changed:
+- Removed modin optional dep
+- Updated dependencies
+    - Simplified dev dependencies, replacing black and isort with ruff
+    - Removed pyre
+- Switched from poetry to pdm for package management
+
 # [2.1.0] [2023-11-24]:
 
 ## Changed:
